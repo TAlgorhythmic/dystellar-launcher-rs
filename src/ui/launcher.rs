@@ -1,6 +1,7 @@
 use crate::ui::components;
+use crate::css;
 use gtk::prelude::*;
-use gtk::{glib, Application, ApplicationWindow};
+use gtk::{glib, Application, ApplicationWindow, CssProvider};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 
@@ -13,6 +14,7 @@ pub fn init(app: &Application) {
         .default_height(720)
         .build();
 
+    css::inject_css();
     window.style_context().add_class("window");
     
     components::init_components(&window);   

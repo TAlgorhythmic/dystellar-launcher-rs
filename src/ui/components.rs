@@ -42,3 +42,31 @@ fn main_box() -> Box {
 
     div
 }
+
+fn generic_label(text: &str) -> Label {
+    let label = Label::builder()
+        .can_focus(false)
+        .label(text)
+        .build();
+
+    label.add_css_class("generic-label");
+
+    label
+}
+
+fn btn_container() -> Box {
+    let container = Box::builder()
+        .can_focus(false)
+        .build();
+
+    container.add_css_class("btn-container");
+
+    container
+}
+
+fn inner_button1(label: &str) -> Button {
+    let ib = Button::with_label(label);
+    
+    ib.add_css_class("inner-button1");
+    ib
+}
