@@ -1,11 +1,13 @@
-use gtk::{ApplicationWindow, Button, Label, Box, Image, MenuButton, Popover};
+use gtk::{ApplicationWindow, Button, Label, Box, Image, MenuButton, Popover, Grid};
 use gtk::prelude::*;
+use crate::ui;
 
 pub fn init_components(window: &ApplicationWindow) {
+    // TODO: do better
     window.set_child(Some(&main_box()));
 }
 
-fn btn_play() -> Button {
+pub fn btn_play() -> Button {
     let btn: Button = Button::builder()
         .can_focus(false)
         .name("Launch")
@@ -17,14 +19,14 @@ fn btn_play() -> Button {
     btn
 }
 
-fn btn_regular(label: &str) -> Button {
+pub fn btn_regular(label: &str) -> Button {
     let btn = Button::with_label(label);
     btn.add_css_class("regular-btn");
 
     btn
 }
 
-fn info_comp(name: &str) -> Box {
+pub fn info_comp(name: &str) -> Box {
     Box::builder()
         .can_focus(false)
         .name(name)
@@ -32,19 +34,17 @@ fn info_comp(name: &str) -> Box {
         .build()
 }
 
-fn main_box() -> Box {
-    let div = Box::builder()
+pub fn main_box() -> Grid {
+    let div = Grid::builder()
         .can_focus(false)
         .orientation(gtk::Orientation::Horizontal)
         .css_name("main-content")
         .build();
 
-    div.append(&btn_play());
-
     div
 }
 
-fn generic_label(text: &str) -> Label {
+pub fn generic_label(text: &str) -> Label {
     let label = Label::builder()
         .can_focus(false)
         .label(text)
@@ -55,7 +55,7 @@ fn generic_label(text: &str) -> Label {
     label
 }
 
-fn btn_container() -> Box {
+pub fn btn_container() -> Box {
     let container = Box::builder()
         .can_focus(false)
         .build();
@@ -65,14 +65,14 @@ fn btn_container() -> Box {
     container
 }
 
-fn inner_button_label(label: &str) -> Button {
+pub fn inner_button_label(label: &str) -> Button {
     let ib = Button::with_label(label);
     
     ib.add_css_class("inner-button");
     ib
 }
 
-fn inner_button_img(img: Image) -> Button {
+pub fn inner_button_img(img: Image) -> Button {
     let btn = Button::new();
     
     btn.set_child(Some(&img));
@@ -81,7 +81,7 @@ fn inner_button_img(img: Image) -> Button {
     btn
 }
 
-fn inner_button_both(label: &str, img: Image) -> Button {
+pub fn inner_button_both(label: &str, img: Image) -> Button {
     let btn = Button::new();
     
     let cont = Box::new(gtk::Orientation::Horizontal, 2);
@@ -94,11 +94,13 @@ fn inner_button_both(label: &str, img: Image) -> Button {
     btn
 }
 
-fn acc_manager() -> MenuButton {
+pub fn acc_manager() -> MenuButton {
     let dpdn = MenuButton::new();
-    dpdn.set_icon_name("asas");
 
     let options = Popover::new();
+    let opts = Box::new(gtk::Orientation::Vertical, 2);
+    opts.append(&inner_button_label("Log in"));
+    options.set_child(Some(&opts));
     
     dpdn.set_popover(Some(&options));
 
