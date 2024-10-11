@@ -1,7 +1,7 @@
 use crate::ui::components;
 use crate::css;
 use gtk::prelude::*;
-use gtk::{glib, Application, ApplicationWindow, CssProvider};
+use gtk::{glib, Application, ApplicationWindow};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 
@@ -15,9 +15,10 @@ pub fn init(app: &Application) {
         .build();
 
     css::inject_css();
-    window.style_context().add_class("window");
-    
-    components::init_components(&window);   
+    window.style_context().add_class("main-content");
+    window.set_decorated(false);
+
+    components::init_components(&window);
 
     window.present();
 }
