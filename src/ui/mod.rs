@@ -1,6 +1,7 @@
 pub mod launcher;
 pub mod components;
 pub mod icons;
+use gtk::prelude::*;
 
 pub struct UserInterfaceNormal {
     main_content: gtk::Grid,
@@ -42,16 +43,48 @@ pub struct UserInterfaceNormal {
     dyst_label: gtk::Label
 }
 
-pub fn init_ui_normal() -> UserInterfaceNormal {
-    let main_content: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Vertical).css_name("main-content").build();
-    let header: gtk::Box = gtk::Box::new(gtk::Orientation::Horizontal, 2);
+pub fn init_ui_normal() {
+    let main_content: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Vertical).row_spacing(5).hexpand_set(true).css_classes(["main-content"]).build();
+    let header: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["header"]).build();
     let quit_btn: gtk::Button = gtk::Button::builder().css_classes(["header-btn"]).build(); //TODO: icon
     let maximize_btn: gtk::Button = gtk::Button::builder().css_classes(["header-btn"]).build(); //TODO: icon
     let minimize_btn: gtk::Button = gtk::Button::builder().css_classes(["header-btn"]).build(); //TODO: icon
-    let subheader: gtk::Box = gtk::Box::new(gtk::Orientation::Horizontal, 2);
-    let info_holder: gtk::Box = gtk::Box::new(gtk::Orientation::Horizontal, 2);
+    let subheader: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["subheader"]).build();
+    let info_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
     let settings_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
     let store_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
     let tos_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
-
+    let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
+    let acc_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
+    let acc_popover: gtk::PopoverMenu = gtk::PopoverMenu::builder().css_classes(["popover"]).build();
+    let login_btn: gtk::Button = gtk::Button::builder().css_classes(["popover-btn"]).build();
+    let logout_btn: gtk::Button = gtk::Button::builder().css_classes(["popover-btn"]).build();
+    let switch_acc_btn: gtk::Button = gtk::Button::builder().css_classes(["popover-btn"]).build();
+    let help_btn: gtk::Button = gtk::Button::builder().css_classes(["popover-btn"]).build();
+    let central_content: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).row_homogeneous(true).column_homogeneous(true).css_classes(["central-content"]).build();
+    let updates_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).build();
+    let updates_next_btn: gtk::Button = gtk::Button::builder().css_classes(["next-btn"]).build();
+    let updates_previous_btn: gtk::Button = gtk::Button::builder().css_classes(["previous-btn"]).build();
+    let updates_main_btn: gtk::Button = gtk::Button::builder().css_classes(["web-content"]).build();
+    let gamestate_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Vertical).css_classes(["central-grid"]).build();
+    // let center_img: gtk::Image;
+    let launch_btn: gtk::Button = gtk::Button::builder().label("Loading...").css_classes(["launch-btn", "disabled"]).build();
+    let mods_btn: gtk::Button = gtk::Button::builder().label("Mods").css_classes(["mods-btn"]).build();
+    let events_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).build();
+    let events_next_btn: gtk::Button = gtk::Button::builder().css_classes(["next-btn"]).build();
+    let events_previous_btn: gtk::Button = gtk::Button::builder().css_classes(["next-btn"]).build();
+    let events_main_btn: gtk::Button = gtk::Button::builder().css_classes(["web-content"]).build();
+    let footer: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).css_classes(["footer"]).spacing(2).build();
+    let socials_box: gtk::Box = gtk::Box::builder().css_classes(["info-holder"]).orientation(gtk::Orientation::Horizontal).spacing(2).build();
+    let d_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
+    let y_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
+    let x_btn: gtk::Button = gtk::Button::builder().css_classes(["info-btn"]).build(); //TODO: icon
+    // let dyst_logo: gtk::Image;
+    let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
+    
+    // Set hierarchy
+    main_content.attach(&header, 0, 0, 1, 1);
+    main_content.attach(&subheader, 0, 1, 1, 1);
+    main_content.attach(&central_content, 0, 2, 1, 1);
+    main_content.attach(&footer, 0, 3, 1, 1);
 }
