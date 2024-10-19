@@ -83,8 +83,35 @@ pub fn init_ui_normal() {
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
     
     // Set hierarchy
+    header.append(&quit_btn);
+    header.append(&maximize_btn);
+    header.append(&minimize_btn);
+    info_holder.append(&settings_btn);
+    info_holder.append(&store_btn);
+    info_holder.append(&tos_btn);
+    acc_popover.add_child(&login_btn, "Log In");
+    acc_popover.add_child(&help_btn, "Help");
+    acc_btn.set_child(Some(&acc_popover));
+    acc_holder.append(&acc_btn);
+    subheader.append(&info_holder);
+    subheader.append(&acc_holder);
+
+    gamestate_grid.attach();
+
+    updates_grid.attach(&updates_main_btn, 0, 0, 3, 1);
+    updates_grid.attach(&updates_next_btn, 2, 0, 1, 1);
+    updates_grid.attach(&updates_previous_btn, 0, 0, 1, 1);
+    
+    events_grid.attach(&events_main_btn, 0, 0, 3, 0);
+    events_grid.attach(&events_previous_btn, 0, 0, 1, 1);
+    events_grid.attach(&events_next_btn, 2, 0, 1, 1);
+
+    central_content.attach(&updates_grid, 0, 0, 1, 1);
+    central_content.attach(&gamestate_grid, 1, 0, 1, 1);
+    central_content.attach(&events_grid, 2, 0, 1, 1);
     main_content.attach(&header, 0, 0, 1, 1);
     main_content.attach(&subheader, 0, 1, 1, 1);
     main_content.attach(&central_content, 0, 2, 1, 1);
     main_content.attach(&footer, 0, 3, 1, 1);
+
 }
