@@ -1,1 +1,3 @@
-pub const CSS: &str = "";
+pub const CSS: &str = "
+
+";

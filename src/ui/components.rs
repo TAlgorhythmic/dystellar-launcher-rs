@@ -1,10 +1,4 @@
-use gtk::{ApplicationWindow, Button, Label, Box, Image, MenuButton, Popover, Grid};
-use gtk::prelude::*;
-use crate::ui;
+use std::sync::LazyLock;
+use crate::ui::{UserInterfaceNormal, init_ui_normal};
 
-// const NORMAL_UI: 
-
-pub fn init_components(window: &ApplicationWindow) {
-    // TODO: do better
-    window.set_child(Some(&NORMAL_UI));
-}
+pub static mut MAIN_UI: LazyLock<UserInterfaceNormal> = LazyLock::new(|| init_ui_normal());

@@ -17,10 +17,12 @@ pub fn init(app: &Application) {
 
     css::inject_css();
     window.style_context().add_class("window");
-    window.set_decorated(false);
+    window.set_decorated(true);
 
-    components::init_components(&window);
-
+    unsafe {
+        window.set_child(Some(&components::MAIN_UI.main_content));
+    }
+   
     window.present();
 }
 
