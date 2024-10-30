@@ -4,6 +4,10 @@ pub const CSS: &str = "headerbar {
 button {
    transition-duration: 0.4s;
    color: white;
+	filter: brightness(100%);
+}
+button:hover {
+	filter: brightness(60%);
 }
 .window {
    background-color: #363636;
