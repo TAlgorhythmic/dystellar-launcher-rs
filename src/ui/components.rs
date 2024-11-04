@@ -14,8 +14,6 @@ fn hover_grow(comp: &Widget) {
     let name = comp.widget_name().to_string();
     WIDGET_STATES.lock().unwrap().insert(name.clone(), true);
 
-    let width_initial = comp.width();
-    let height_initial = comp.height();
     let target_size = 115;
     let widget = comp.clone();
 
@@ -26,9 +24,11 @@ fn hover_grow(comp: &Widget) {
         if (width == target_size && height == target_size) || !states.get(&name).unwrap() {
             return ControlFlow::Break;
         } else {
-            let amount: i32 = ((target_size - width) as f32 * 0.23) as i32;
+            let mid_diff = (target_size - width) as f32 / 2.0;
+            let amount: i32 = (mid_diff * 0.4) as i32;
             widget.set_width_request(width + amount);
             widget.set_height_request(height + amount);
+            
             return ControlFlow::Continue;
         }
     });

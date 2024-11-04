@@ -2,6 +2,7 @@ pub mod launcher;
 pub mod components;
 pub mod icons;
 use gtk::prelude::*;
+use gtk::gdk_pixbuf::Pixbuf;
 
 pub struct UserInterfaceNormal {
     main_content: gtk::Box,
@@ -104,6 +105,8 @@ pub fn init_ui_normal() -> UserInterfaceNormal {
     central_content.attach(&gamestate_box, 1, 0, 1, 1);
     central_content.attach(&events_grid, 2, 0, 1, 1);
     
+    init_icons(&y_btn, &d_btn, &x_btn);
+
     socials_box.append(&d_btn);
     socials_box.append(&y_btn);
     socials_box.append(&x_btn);
@@ -154,4 +157,42 @@ pub fn init_ui_normal() -> UserInterfaceNormal {
         dyst_logo,
         dyst_label
     }
+}
+
+fn init_icons(yt: &gtk::Button, dc: &gtk::Button, x: &gtk::Button) {
+    let f_x;
+    let f_d;
+    let f_y;
+
+    // Windows, why?
+    #[cfg(target_os = "windows")] {
+        f_x = include_bytes!(".\\..\\..\\assets\\icons\\x.symbolic.png");
+        f_d = include_bytes!(".\\..\\..\\assets\\icons\\discord.symbolic.png");
+        f_y = include_bytes!(".\\..\\..\\assets\\icons\\youtube.symbolic.png");
+    }
+    #[cfg(not(target_os = "windows"))] {
+        f_x = include_bytes!("./../../assets/icons/x.symbolic.png");
+        f_d = include_bytes!("./../../assets/icons/discord.symbolic.png");
+        f_y = include_bytes!("./../../assets/icons/youtube.symbolic.png");
+    }
+
+    let bytes_x = gtk::glib::Bytes::from_owned(f_x);
+    let bytes_d = gtk::glib::Bytes::from_owned(f_d);
+    let bytes_y = gtk::glib::Bytes::from_owned(f_y);
+
+    let stream_x = gtk::gio::MemoryInputStream::from_bytes(&bytes_x);
+    let stream_d = gtk::gio::MemoryInputStream::from_bytes(&bytes_d);
+    let stream_y = gtk::gio::MemoryInputStream::from_bytes(&bytes_y);
+
+    let pixbuf_x = Pixbuf::from_stream(&stream_x, gtk::gio::Cancellable::NONE);
+    let pixbuf_d = Pixbuf::from_stream(&stream_d, gtk::gio::Cancellable::NONE);
+    let pixbuf_y = Pixbuf::from_stream(&stream_y, gtk::gio::Cancellable::NONE);
+
+    let img_x = gtk::Image::new(); img_x.set_from_pixbuf(Some(&pixbuf_x.expect("Pixbuf error X.")));
+    let img_d = gtk::Image::new(); img_d.set_from_pixbuf(Some(&pixbuf_d.expect("Pixbuf error D.")));
+    let img_y = gtk::Image::new(); img_y.set_from_pixbuf(Some(&pixbuf_y.expect("Pixbuf error Y.")));
+
+    yt.set_child(Some(&img_y));
+    dc.set_child(Some(&img_d));
+    x.set_child(Some(&img_x));
 }
