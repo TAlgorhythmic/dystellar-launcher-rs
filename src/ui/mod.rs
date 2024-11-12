@@ -3,6 +3,7 @@ pub mod components;
 pub mod icons;
 use gtk::prelude::*;
 use gtk::gdk_pixbuf::Pixbuf;
+use gtk::{EventControllerMotion, EventController};
 
 pub struct MainUI {
     main_content: gtk::Box,
@@ -121,7 +122,7 @@ pub fn init_main_ui() -> MainUI {
     main_content.append(&central_content);
     main_content.append(&footer);
     
-    return MainUI {
+    let ui = MainUI {
         main_content,
         subheader,
         info_holder,
@@ -156,7 +157,9 @@ pub fn init_main_ui() -> MainUI {
         dyst_box,
         dyst_logo,
         dyst_label
-    }
+    };
+    add_events(&ui);
+    ui
 }
 
 fn init_icons(yt: &gtk::Button, dc: &gtk::Button, x: &gtk::Button) {
@@ -199,4 +202,15 @@ fn init_icons(yt: &gtk::Button, dc: &gtk::Button, x: &gtk::Button) {
     yt.set_child(Some(&img_y));
     dc.set_child(Some(&img_d));
     x.set_child(Some(&img_x));
+}
+
+fn add_events(ui: &MainUI) {
+    let grow_mcontroller = EventControllerMotion::new();
+    grow_mcontroller.connect_enter(|event, _, _| {
+        event.widget().map(|widget| {components::hover_grow(&widget, widget.width() + 5, widget.height() + 5, true);});
+    });
+    grow_mcontroller.connect_leave(|event| {
+        //event.widget().map(|widget| {components::hover_shrink(&widget, true);});
+    });
+    ui.x_btn.add_controller(grow_mcontroller.clone());
 }

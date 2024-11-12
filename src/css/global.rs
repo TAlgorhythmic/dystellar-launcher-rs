@@ -6,8 +6,8 @@ button {
    color: white;
 	filter: brightness(100%);
 }
-button:hover {
-	filter: brightness(40%);
+.clicked {
+	filter: brightness(45%);
 }
 .window {
    background-color: #363636;
