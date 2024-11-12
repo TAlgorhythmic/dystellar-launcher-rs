@@ -2,9 +2,10 @@ pub const CSS: &str = "headerbar {
    background-color: #363636;
 }
 button {
-   transition-duration: 0.3s;
    color: white;
-	filter: brightness(100%);
+}
+.main-content {
+   margin: 20px;
 }
 .clicked {
 	filter: brightness(45%);

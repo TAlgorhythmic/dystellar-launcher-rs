@@ -1,6 +1,7 @@
 pub mod launcher;
 pub mod components;
 pub mod icons;
+mod helpers;
 use gtk::prelude::*;
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::{EventControllerMotion, EventController};
@@ -45,40 +46,43 @@ pub struct MainUI {
 impl MainUI {}
 
 pub fn init_main_ui() -> MainUI {
-    let main_content: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).margin_end(16).margin_top(16).margin_start(16).margin_bottom(16).css_classes(["main-content"]).vexpand(true).hexpand(true).valign(gtk::Align::Fill).halign(gtk::Align::Fill).build();
+    let main_content: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["main-content"]).vexpand(true).hexpand(true).valign(gtk::Align::Fill).halign(gtk::Align::Fill).build();
     let subheader: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["subheader"]).build();
     let info_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
-    let settings_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["info-btn"]).build(); //TODO: icon
-    let store_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["info-btn"]).build(); //TODO: icon
-    let tos_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["info-btn"]).build(); //TODO: icon
+    let settings_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
+    let store_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
+    let tos_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
     let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
-    let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["info-btn"]).build(); //TODO: icon
-    let acc_popover: gtk::PopoverMenu = gtk::PopoverMenu::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["popover"]).build();
-    let login_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["popover-btn"]).build();
-    let logout_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["popover-btn"]).build();
-    let switch_acc_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["popover-btn"]).build();
-    let help_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["popover-btn"]).build();
+    let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
+    let acc_popover: gtk::PopoverMenu = gtk::PopoverMenu::builder().focusable(false).css_classes(["popover"]).build();
+    let login_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
+    let logout_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
+    let switch_acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
+    let help_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
     let central_content: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).row_homogeneous(true).column_homogeneous(true).hexpand(true).vexpand(true).css_classes(["central-content"]).build();
-    let updates_grid: gtk::Grid = gtk::Grid::builder().margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).hexpand(true).vexpand(true).build();
+    let updates_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).hexpand(true).vexpand(true).build();
     let updates_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let updates_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
     let updates_main_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
-    let gamestate_box: gtk::Box = gtk::Box::builder().margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).orientation(gtk::Orientation::Vertical).spacing(4).valign(gtk::Align::Center).css_classes(["central-grid"]).build();
+    let gamestate_box: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).valign(gtk::Align::Center).css_classes(["central-grid"]).build();
     let center_img: gtk::Image = gtk::Image::new();
-    let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).label("Loading...").css_classes(["launch-btn", "disabled"]).build();
-    let mods_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).label("Mods").css_classes(["mods-btn"]).build();
-    let events_grid: gtk::Grid = gtk::Grid::builder().margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).orientation(gtk::Orientation::Horizontal).hexpand(true).vexpand(true).css_classes(["content-grid"]).build();
+    let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Loading...").css_classes(["launch-btn", "disabled"]).build();
+    let mods_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Mods").css_classes(["mods-btn"]).build();
+    let events_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).hexpand(true).vexpand(true).css_classes(["content-grid"]).build();
     let events_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let events_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let events_main_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
     let footer: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["footer"]).build();
-    let socials_box: gtk::Box = gtk::Box::builder().css_classes(["info-holder"]).orientation(gtk::Orientation::Horizontal).spacing(2).build();
-    let d_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(15).margin_end(4).css_classes(["info-btn"]).build(); //TODO: icon
-    let y_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["info-btn"]).build(); //TODO: icon
-    let x_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_bottom(10).margin_top(10).margin_start(4).margin_end(15).css_classes(["info-btn"]).build(); //TODO: icon
-    let dyst_box: gtk::Box = gtk::Box::builder().focusable(false).orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
-    let dyst_logo: gtk::Image = gtk::Image::builder().margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).build();
-    let dyst_label: gtk::Label = gtk::Label::builder().margin_bottom(10).margin_top(10).margin_start(10).margin_end(10).css_classes(["label"]).label("Dystellar Network").build();
+    let socials_box: gtk::Box = gtk::Box::builder().css_classes(["info-holder"]).hexpand(false).orientation(gtk::Orientation::Horizontal).build();
+    let d_overlay: gtk::CenterBox = gtk::CenterBox::builder().margin_start(10).focusable(false).css_classes(["overlay-util"]).build();
+    let d_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
+    let y_overlay: gtk::CenterBox = gtk::CenterBox::builder().focusable(false).css_classes(["overlay-util"]).build();
+    let y_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
+    let x_overlay: gtk::CenterBox = gtk::CenterBox::builder().margin_end(10).focusable(false).css_classes(["overlay-util"]).build();
+    let x_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
+    let dyst_box: gtk::Box = gtk::Box::builder().focusable(false).orientation(gtk::Orientation::Horizontal).css_classes(["info-holder"]).build();
+    let dyst_logo: gtk::Image = gtk::Image::builder().build();
+    let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
     
     // Set hierarchy
     info_holder.append(&settings_btn);
@@ -108,9 +112,13 @@ pub fn init_main_ui() -> MainUI {
     
     init_icons(&y_btn, &d_btn, &x_btn);
 
-    socials_box.append(&d_btn);
-    socials_box.append(&y_btn);
-    socials_box.append(&x_btn);
+    d_overlay.set_center_widget(Some(&d_btn));
+    y_overlay.set_center_widget(Some(&y_btn));
+    x_overlay.set_center_widget(Some(&x_btn));
+
+    socials_box.append(&d_overlay);
+    socials_box.append(&y_overlay);
+    socials_box.append(&x_overlay);
 
     dyst_box.append(&dyst_logo);
     dyst_box.append(&dyst_label);
@@ -205,12 +213,13 @@ fn init_icons(yt: &gtk::Button, dc: &gtk::Button, x: &gtk::Button) {
 }
 
 fn add_events(ui: &MainUI) {
-    let grow_mcontroller = EventControllerMotion::new();
-    grow_mcontroller.connect_enter(|event, _, _| {
-        event.widget().map(|widget| {components::hover_grow(&widget, widget.width() + 5, widget.height() + 5, true);});
+    let link = EventControllerMotion::new();
+    link.connect_enter(|event, _, _| {
+        event.widget().map(|widget| {widget.set_cursor_from_name(Some("pointer"));});
     });
-    grow_mcontroller.connect_leave(|event| {
-        //event.widget().map(|widget| {components::hover_shrink(&widget, true);});
+    link.connect_leave(|event| {
+        event.widget().map(|widget| {widget.set_cursor_from_name(Some("none"));});
     });
-    ui.x_btn.add_controller(grow_mcontroller.clone());
+    ui.x_btn.add_controller(link.clone());
+    ui.d_btn.add_controller(link.clone());
 }
