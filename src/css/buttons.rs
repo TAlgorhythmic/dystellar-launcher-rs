@@ -3,17 +3,17 @@ pub const CSS: &str = ".info-btn {
    filter: brightness(100%);
 	color: white;
 	background: transparent;
-   min-width: 28px;
-   min-height: 28px;
+   min-width: 31px;
+   min-height: 31px;
    transform: scale(1);
-   margin-top: 10px;
-   margin-bottom: 10px;
+   margin-top: 5px;
+   margin-bottom: 5px;
 }
 .info-btn:hover {
    transform: scale(1.25);
 }
-.info-btn-clicked {
-   transform: scale(1) !important;
-   filter: brightness(50%) !important;
+.info-btn.active {
+   transform: scale(1);
+   filter: brightness(50%);
 }
 ";
