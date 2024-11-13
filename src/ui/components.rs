@@ -10,6 +10,10 @@ use crate::ui::{MainUI, init_main_ui};
 pub static mut MAIN_UI: LazyLock<MainUI> = LazyLock::new(|| init_main_ui());
 pub static WIDGET_STATES: LazyLock<Mutex<HashMap<String, bool>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-pub fn btn_onclick(comp: &Widget, target_width: i32, target_height: i32, restore_margins: bool) {
+pub fn info_btn_onpress(comp: &Widget) {
+    comp.add_css_class("info-btn-clicked");
+}
 
+pub fn info_btn_onrelease(comp: &Widget) {
+    comp.remove_css_class("info-btn-clicked");
 }

@@ -1,13 +1,19 @@
 pub const CSS: &str = ".info-btn {
-   transition-duration: 0.3s;
+   transition-duration: 0.24s;
    filter: brightness(100%);
 	color: white;
 	background: transparent;
-   min-width: 26px;
-   min-height: 26px;
+   min-width: 28px;
+   min-height: 28px;
+   transform: scale(1);
+   margin-top: 10px;
+   margin-bottom: 10px;
 }
 .info-btn:hover {
-   min-width: 32px;
-   min-height: 32px;
+   transform: scale(1.25);
+}
+.info-btn-clicked {
+   transform: scale(1) !important;
+   filter: brightness(50%) !important;
 }
 ";

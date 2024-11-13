@@ -1,8 +1,7 @@
 use crate::ui::components;
-use crate::ui::icons;
 use crate::css;
 use gtk::prelude::*;
-use gtk::{gdk_pixbuf, Application, ApplicationWindow, glib};
+use gtk::{Application, ApplicationWindow, glib};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 
