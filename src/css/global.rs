@@ -5,7 +5,7 @@ button {
    color: white;
 }
 .main-content {
-   margin: 20px;
+   margin: 28px;
 }
 .clicked {
 	filter: brightness(45%);

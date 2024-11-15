@@ -13,12 +13,13 @@ pub fn add_link_controller_button(btn: &Button) {
     btn.add_controller(link);
 }
 
-pub fn add_info_btn_click_controller(btn: &Button) {
+pub fn add_btn_click_controller(btn: &Button) {
     let click = GestureClick::new();
-    click.connect_begin(|event, _| {
+    click.connect_pressed(|event, _, _, _| {
         event.widget().map(|widget| info_btn_onpress(&widget));
+        event.set_state(gtk::EventSequenceState::Claimed);
     });
-    click.connect_end(|event, _| {
+    click.connect_released(|event, _, _, _| {
         event.widget().map(|widget| info_btn_onrelease(&widget));
         event.set_state(gtk::EventSequenceState::None);
     });
