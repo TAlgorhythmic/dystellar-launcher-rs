@@ -11,4 +11,12 @@ pub const CSS: &str = ".info-holder {
    background-color: rgba(0, 0, 0, 0.3);
    border-radius: 36px;
 }
+.central-box {
+   margin-right: 20px;
+   margin-left: 20px;
+}
+.web-content {
+   border-radius: 36px;
+   background: transparent;
+}
 ";

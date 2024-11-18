@@ -62,7 +62,7 @@ pub fn init_main_ui() -> MainUI {
     let updates_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let updates_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
     let updates_main_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
-    let gamestate_box: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).valign(gtk::Align::Center).css_classes(["central-grid"]).build();
+    let gamestate_box: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).valign(gtk::Align::Center).css_classes(["central-box"]).build();
     let center_img: gtk::Image = gtk::Image::new();
     let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Loading...").css_classes(["launch-btn", "disabled"]).build();
     let mods_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Mods").css_classes(["mods-btn"]).build();
@@ -145,6 +145,8 @@ fn init_icons(ui: &MainUI) {
         f_d = include_bytes!(".\\..\\..\\assets\\icons\\discord.symbolic.png");
         f_y = include_bytes!(".\\..\\..\\assets\\icons\\youtube.symbolic.png");
         settings = include_bytes!(".\\..\\..\\assets\\icons\\settings.symbolic.png");
+        previous = include_bytes!(".\\..\\..\\assets\\icons\\previous.symbolic.png");
+        next = include_bytes!(".\\..\\..\\assets\\icons\\next.symbolic.png");
     }
     #[cfg(not(target_os = "windows"))] {
         f_x = include_bytes!("./../../assets/icons/x.symbolic.png");
@@ -195,6 +197,7 @@ fn add_events(ui: &MainUI) {
     helpers::add_link_controller_button(&ui.x_btn);
     helpers::add_link_controller_button(&ui.d_btn);
     helpers::add_link_controller_button(&ui.y_btn);
+    helpers::add_link_controller_button(&ui.launch_btn);
     helpers::add_btn_click_controller(&ui.x_btn);
     helpers::add_btn_click_controller(&ui.d_btn);
     helpers::add_btn_click_controller(&ui.y_btn);
@@ -203,6 +206,9 @@ fn add_events(ui: &MainUI) {
     helpers::add_btn_click_controller(&ui.events_next_btn);
     helpers::add_btn_click_controller(&ui.updates_previous_btn);
     helpers::add_btn_click_controller(&ui.events_previous_btn);
+    helpers::add_btn_click_controller(&ui.launch_btn);
+    helpers::add_btn_click_controller(&ui.mods_btn);
+    helpers::add_btn_click_controller(&ui.tos_btn);
     
     let updates_previous_btn = ui.updates_previous_btn.clone();
     let updates_next_btn = ui.updates_next_btn.clone();

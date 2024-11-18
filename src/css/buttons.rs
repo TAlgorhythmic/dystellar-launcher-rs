@@ -10,7 +10,7 @@ pub const CSS: &str = ".info-btn {
    margin-bottom: 5px;
 }
 .info-btn:hover {
-   transform: scale(1.2);
+   transform: scale(1.16);
 }
 .info-btn.active {
    transition-duration: 0.05s;
@@ -47,8 +47,50 @@ pub const CSS: &str = ".info-btn {
 .previous-btn.focus {
    opacity: 100%;
 }
-.web-content {
-   border-radius: 36px;
-   background: transparent;
+.launch-btn {
+   font-size: 25px;
+   text-shadow: 0px 0px 10px black;
+   transition-duration: 0.25s;
+   border-radius: 100px;
+   min-height: 60px;
+   margin: 8px;
+   transform: scale(1);
+   filter: brightness(100%);
+}
+.launch-btn.enabled {
+   background: rgba(0, 255, 210, 0.2);
+   border: 1px solid rgba(0, 255, 210, 0.53);
+   box-shadow: 0px 0px 14px rgba(0, 255, 210, 0.38);
+}
+.launch-btn.disabled {
+   background: rgba(255, 255, 255, 0.2);
+   border: 1px solid rgba(255, 255, 255, 0.4);
+   box-shadow: 0px 0px 14px rgba(255, 255, 255, 0.38);
+}
+.launch-btn.disabled:hover {
+   background: rgba(255, 255, 255, 0.3);
+}
+.launch-btn.active {
+   transition-duration: 0.045s;
+   transform: scale(0.96);
+   filter: brightness(50%);
+}
+.mods-btn {
+   transition-duration: 0.25s;
+   border: 1px solid rgba(0, 255, 210, 0.53);
+   background: rgba(0, 0, 0, 0.2);
+   border-radius: 12px;
+   transform: scale(1);
+   margin-left: 48px;
+   margin-right: 48px;
+   filter: brightness(100%);
+}
+.mods-btn:hover {
+   background: rgba(0, 255, 210, 0.4);
+}
+.mods-btn.active {
+   transition-duration: 0.045s;
+   transform: scale(0.96);
+   filter: brightness(50%);
 }
 ";
