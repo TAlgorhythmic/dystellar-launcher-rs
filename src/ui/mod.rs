@@ -13,7 +13,7 @@ pub struct MainUI {
     tos_btn: gtk::Button,
     acc_holder: gtk::Box,
     acc_btn: gtk::Button,
-    acc_popover: gtk::PopoverMenu,
+    acc_popover: gtk::Popover,
     login_btn: gtk::Button,
     logout_btn: gtk::Button,
     switch_acc_btn: gtk::Button,
@@ -47,16 +47,16 @@ pub fn init_main_ui() -> MainUI {
     let main_content: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["main-content"]).vexpand(true).hexpand(true).valign(gtk::Align::Fill).halign(gtk::Align::Fill).build();
     let subheader: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["subheader"]).build();
     let info_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
-    let settings_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
-    let store_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
-    let tos_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
+    let settings_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
+    let store_btn: gtk::Button = gtk::Button::builder().label("Store").focusable(false).css_classes(["info-btn"]).build();
+    let tos_btn: gtk::Button = gtk::Button::builder().label("ToS").focusable(false).css_classes(["info-btn"]).build();
     let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
     let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
-    let acc_popover: gtk::PopoverMenu = gtk::PopoverMenu::builder().focusable(false).css_classes(["popover"]).build();
-    let login_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
-    let logout_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
-    let switch_acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
-    let help_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["popover-btn"]).build();
+    let acc_popover: gtk::Popover = gtk::Popover::builder().focusable(false).css_classes(["popover"]).build();
+    let login_btn: gtk::Button = gtk::Button::builder().label("Log In").focusable(false).css_classes(["popover-btn"]).build();
+    let logout_btn: gtk::Button = gtk::Button::builder().label("Log Out").focusable(false).css_classes(["popover-btn"]).build();
+    let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
+    let help_btn: gtk::Button = gtk::Button::builder().label("Help").focusable(false).css_classes(["popover-btn"]).build();
     let central_content: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).row_homogeneous(true).column_homogeneous(true).hexpand(true).vexpand(true).css_classes(["central-content"]).build();
     let updates_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).hexpand(true).vexpand(true).build();
     let updates_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
@@ -85,6 +85,9 @@ pub fn init_main_ui() -> MainUI {
     info_holder.append(&tos_btn);
     acc_popover.add_child(&login_btn, "Log In");
     acc_popover.add_child(&help_btn, "Help");
+    acc_popover.set_visible_submenu(Some("da"));
+    acc_popover.set_child_visible(true);
+    acc_popover.set_mnemonics_visible(true);
     acc_btn.set_child(Some(&acc_popover));
     acc_holder.append(&acc_btn);
     subheader.set_start_widget(Some(&info_holder));
@@ -138,6 +141,7 @@ fn init_icons(ui: &MainUI) {
     let settings;
     let previous;
     let next;
+    let nouser;
 
     // Windows, why?
     #[cfg(target_os = "windows")] {
@@ -147,6 +151,7 @@ fn init_icons(ui: &MainUI) {
         settings = include_bytes!(".\\..\\..\\assets\\icons\\settings.symbolic.png");
         previous = include_bytes!(".\\..\\..\\assets\\icons\\previous.symbolic.png");
         next = include_bytes!(".\\..\\..\\assets\\icons\\next.symbolic.png");
+        nouser = include_bytes!(".\\..\\..\\assets\\icons\\nouser.symbolic.png");
     }
     #[cfg(not(target_os = "windows"))] {
         f_x = include_bytes!("./../../assets/icons/x.symbolic.png");
@@ -155,6 +160,7 @@ fn init_icons(ui: &MainUI) {
         settings = include_bytes!("./../../assets/icons/settings.symbolic.png");
         previous = include_bytes!("./../../assets/icons/previous.symbolic.png");
         next = include_bytes!("./../../assets/icons/next.symbolic.png");
+        nouser = include_bytes!("./../../assets/icons/nouser.symbolic.png");
     }
 
     let bytes_x = gtk::glib::Bytes::from_owned(f_x);
@@ -163,6 +169,7 @@ fn init_icons(ui: &MainUI) {
     let bytes_sett = gtk::glib::Bytes::from_owned(settings);
     let bytes_prev = gtk::glib::Bytes::from_owned(previous);
     let bytes_next = gtk::glib::Bytes::from_owned(next);
+    let bytes_nouser = gtk::glib::Bytes::from_owned(nouser);
 
     let stream_x = gtk::gio::MemoryInputStream::from_bytes(&bytes_x);
     let stream_d = gtk::gio::MemoryInputStream::from_bytes(&bytes_d);
@@ -170,6 +177,7 @@ fn init_icons(ui: &MainUI) {
     let stream_sett = gtk::gio::MemoryInputStream::from_bytes(&bytes_sett);
     let stream_prev = gtk::gio::MemoryInputStream::from_bytes(&bytes_prev);
     let stream_next = gtk::gio::MemoryInputStream::from_bytes(&bytes_next);
+    let stream_nouser = gtk::gio::MemoryInputStream::from_bytes(&bytes_nouser);
 
     let pixbuf_x = Pixbuf::from_stream(&stream_x, gtk::gio::Cancellable::NONE);
     let pixbuf_d = Pixbuf::from_stream(&stream_d, gtk::gio::Cancellable::NONE);
@@ -177,16 +185,19 @@ fn init_icons(ui: &MainUI) {
     let pixbuf_sett = Pixbuf::from_stream(&stream_sett, gtk::gio::Cancellable::NONE);
     let pixbuf_prev = Pixbuf::from_stream(&stream_prev, gtk::gio::Cancellable::NONE).expect("Pixbuf error prev.");
     let pixbuf_next = Pixbuf::from_stream(&stream_next, gtk::gio::Cancellable::NONE).expect("Pixbuf error next.");
+    let pixbuf_nouser = Pixbuf::from_stream(&stream_nouser, gtk::gio::Cancellable::NONE);
 
     let img_x = gtk::Image::new(); img_x.set_from_pixbuf(Some(&pixbuf_x.expect("Pixbuf error X.")));
     let img_d = gtk::Image::new(); img_d.set_from_pixbuf(Some(&pixbuf_d.expect("Pixbuf error D.")));
     let img_y = gtk::Image::new(); img_y.set_from_pixbuf(Some(&pixbuf_y.expect("Pixbuf error Y.")));
     let img_sett = gtk::Image::new(); img_sett.set_from_pixbuf(Some(&pixbuf_sett.expect("Pixbuf error sett.")));
+    let img_nouser = gtk::Image::new(); img_nouser.set_from_pixbuf(Some(&pixbuf_nouser.expect("Pixbuf error nouser.")));
 
     ui.y_btn.set_child(Some(&img_y));
     ui.d_btn.set_child(Some(&img_d));
     ui.x_btn.set_child(Some(&img_x));
     ui.settings_btn.set_child(Some(&img_sett));
+    ui.acc_popover.set_child(Some(&img_nouser));
     ui.updates_previous_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_prev))));
     ui.events_previous_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_prev))));
     ui.updates_next_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_next))));
@@ -209,6 +220,7 @@ fn add_events(ui: &MainUI) {
     helpers::add_btn_click_controller(&ui.launch_btn);
     helpers::add_btn_click_controller(&ui.mods_btn);
     helpers::add_btn_click_controller(&ui.tos_btn);
+    helpers::add_btn_click_controller(&ui.store_btn);
     
     let updates_previous_btn = ui.updates_previous_btn.clone();
     let updates_next_btn = ui.updates_next_btn.clone();

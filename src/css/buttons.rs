@@ -62,6 +62,9 @@ pub const CSS: &str = ".info-btn {
    border: 1px solid rgba(0, 255, 210, 0.53);
    box-shadow: 0px 0px 14px rgba(0, 255, 210, 0.38);
 }
+.launch-btn.enabled:hover {
+   background: rgba(0, 255, 210, 0.3);
+}
 .launch-btn.disabled {
    background: rgba(255, 255, 255, 0.2);
    border: 1px solid rgba(255, 255, 255, 0.4);
@@ -86,7 +89,7 @@ pub const CSS: &str = ".info-btn {
    filter: brightness(100%);
 }
 .mods-btn:hover {
-   background: rgba(0, 255, 210, 0.4);
+   background: rgba(0, 255, 210, 0.18);
 }
 .mods-btn.active {
    transition-duration: 0.045s;

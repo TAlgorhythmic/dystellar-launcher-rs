@@ -5,6 +5,10 @@ use gtk::{Application, ApplicationWindow, glib};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 
+fn load_font(data: &[u8]) {
+    let map = gtk::pango::FontMap
+}
+
 pub fn init(app: &Application) {
     let window = ApplicationWindow::builder()
         .application(app)
@@ -15,6 +19,14 @@ pub fn init(app: &Application) {
         .build();
 
     css::inject_css();
+
+    #[cfg(target_os = "windows")]
+        let f_bytes: &[u8] = include_bytes!(".\\..\\..\\assets\\fonts\\rajdhani.ttf");
+    #[cfg(not(target_os = "windows"))]
+        let f_bytes: &[u8] = include_bytes!("./../../assets/fonts/rajdhani.ttf");
+
+    
+
     window.style_context().add_class("window");
     window.set_decorated(true);
 
