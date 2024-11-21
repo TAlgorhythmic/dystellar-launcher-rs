@@ -13,7 +13,7 @@ pub struct MainUI {
     tos_btn: gtk::Button,
     acc_holder: gtk::Box,
     acc_btn: gtk::Button,
-    acc_popover: gtk::Popover,
+    acc_popover: gtk::PopoverMenu,
     login_btn: gtk::Button,
     logout_btn: gtk::Button,
     switch_acc_btn: gtk::Button,
@@ -52,7 +52,7 @@ pub fn init_main_ui() -> MainUI {
     let tos_btn: gtk::Button = gtk::Button::builder().label("ToS").focusable(false).css_classes(["info-btn"]).build();
     let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
     let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
-    let acc_popover: gtk::Popover = gtk::Popover::builder().focusable(false).css_classes(["popover"]).build();
+    let acc_popover: gtk::PopoverMenu = gtk::PopoverMenu::builder().focusable(false).css_classes(["popover"]).build();
     let login_btn: gtk::Button = gtk::Button::builder().label("Log In").focusable(false).css_classes(["popover-btn"]).build();
     let logout_btn: gtk::Button = gtk::Button::builder().label("Log Out").focusable(false).css_classes(["popover-btn"]).build();
     let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
@@ -78,14 +78,13 @@ pub fn init_main_ui() -> MainUI {
     let dyst_box: gtk::Box = gtk::Box::builder().focusable(false).orientation(gtk::Orientation::Horizontal).css_classes(["info-holder"]).build();
     let dyst_logo: gtk::Image = gtk::Image::builder().build();
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
-    
+
     // Set hierarchy
     info_holder.append(&settings_btn);
     info_holder.append(&store_btn);
     info_holder.append(&tos_btn);
     acc_popover.add_child(&login_btn, "Log In");
     acc_popover.add_child(&help_btn, "Help");
-    acc_popover.set_visible_submenu(Some("da"));
     acc_popover.set_child_visible(true);
     acc_popover.set_mnemonics_visible(true);
     acc_btn.set_child(Some(&acc_popover));
@@ -127,7 +126,7 @@ pub fn init_main_ui() -> MainUI {
         acc_btn, acc_popover, login_btn, logout_btn, switch_acc_btn, help_btn, central_content,
         updates_grid, updates_next_btn, updates_previous_btn, updates_main_btn, gamestate_box,
         center_img, launch_btn, mods_btn, events_grid, events_next_btn, events_previous_btn,
-        events_main_btn, footer, socials_box, d_btn, y_btn, x_btn, dyst_box, dyst_logo,dyst_label
+        events_main_btn, footer, socials_box, d_btn, y_btn, x_btn, dyst_box, dyst_logo, dyst_label
     };
     init_icons(&ui);
     add_events(&ui);
