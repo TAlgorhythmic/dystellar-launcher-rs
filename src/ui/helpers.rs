@@ -19,7 +19,7 @@ pub fn add_btn_click_controller(btn: &Button) {
         event.widget().map(|widget| info_btn_onpress(&widget));
         event.set_state(gtk::EventSequenceState::Claimed);
     });
-    click.connect_released(|event, _, _, _| {
+    click.connect_released(move |event, _, _, _| {
         event.widget().map(|widget| info_btn_onrelease(&widget));
         event.set_state(gtk::EventSequenceState::None);
     });

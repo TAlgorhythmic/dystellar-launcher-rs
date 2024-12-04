@@ -13,7 +13,7 @@ pub struct MainUI {
     tos_btn: gtk::Button,
     acc_holder: gtk::Box,
     acc_btn: gtk::Button,
-    acc_popover: gtk::PopoverMenu,
+    acc_popover: gtk::Popover,
     login_btn: gtk::Button,
     logout_btn: gtk::Button,
     switch_acc_btn: gtk::Button,
@@ -51,8 +51,8 @@ pub fn init_main_ui() -> MainUI {
     let store_btn: gtk::Button = gtk::Button::builder().label("Store").focusable(false).css_classes(["info-btn"]).build();
     let tos_btn: gtk::Button = gtk::Button::builder().label("ToS").focusable(false).css_classes(["info-btn"]).build();
     let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
-    let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); //TODO: icon
-    let acc_popover: gtk::PopoverMenu = gtk::PopoverMenu::builder().focusable(false).css_classes(["popover"]).build();
+    let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); // Icon
+    let acc_popover: gtk::Popover = gtk::Popover::builder().has_arrow(true).hexpand(true).vexpand(true).focusable(false).css_classes(["popover"]).build();
     let login_btn: gtk::Button = gtk::Button::builder().label("Log In").focusable(false).css_classes(["popover-btn"]).build();
     let logout_btn: gtk::Button = gtk::Button::builder().label("Log Out").focusable(false).css_classes(["popover-btn"]).build();
     let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
@@ -83,11 +83,11 @@ pub fn init_main_ui() -> MainUI {
     info_holder.append(&settings_btn);
     info_holder.append(&store_btn);
     info_holder.append(&tos_btn);
-    acc_popover.add_child(&login_btn, "Log In");
-    acc_popover.add_child(&help_btn, "Help");
-    acc_popover.set_child_visible(true);
-    acc_popover.set_mnemonics_visible(true);
-    acc_btn.set_child(Some(&acc_popover));
+    let popover_widget = gtk::Box::builder().orientation(gtk::Orientation::Vertical).focusable(false).build();
+    popover_widget.append(&login_btn);
+    popover_widget.append(&help_btn);
+    acc_popover.set_child(Some(&popover_widget));
+    acc_popover.set_parent(&acc_btn);
     acc_holder.append(&acc_btn);
     subheader.set_start_widget(Some(&info_holder));
     subheader.set_end_widget(Some(&acc_holder));
@@ -196,7 +196,7 @@ fn init_icons(ui: &MainUI) {
     ui.d_btn.set_child(Some(&img_d));
     ui.x_btn.set_child(Some(&img_x));
     ui.settings_btn.set_child(Some(&img_sett));
-    ui.acc_popover.set_child(Some(&img_nouser));
+    ui.acc_btn.set_child(Some(&img_nouser));
     ui.updates_previous_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_prev))));
     ui.events_previous_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_prev))));
     ui.updates_next_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_next))));
@@ -208,19 +208,24 @@ fn add_events(ui: &MainUI) {
     helpers::add_link_controller_button(&ui.d_btn);
     helpers::add_link_controller_button(&ui.y_btn);
     helpers::add_link_controller_button(&ui.launch_btn);
-    helpers::add_btn_click_controller(&ui.x_btn);
-    helpers::add_btn_click_controller(&ui.d_btn);
-    helpers::add_btn_click_controller(&ui.y_btn);
-    helpers::add_btn_click_controller(&ui.settings_btn);
-    helpers::add_btn_click_controller(&ui.updates_next_btn);
-    helpers::add_btn_click_controller(&ui.events_next_btn);
-    helpers::add_btn_click_controller(&ui.updates_previous_btn);
-    helpers::add_btn_click_controller(&ui.events_previous_btn);
-    helpers::add_btn_click_controller(&ui.launch_btn);
-    helpers::add_btn_click_controller(&ui.mods_btn);
-    helpers::add_btn_click_controller(&ui.tos_btn);
-    helpers::add_btn_click_controller(&ui.store_btn);
-    
+    helpers::add_btn_click_controller(&ui.x_btn, None);
+    helpers::add_btn_click_controller(&ui.d_btn, None);
+    helpers::add_btn_click_controller(&ui.y_btn, None);
+    helpers::add_btn_click_controller(&ui.settings_btn, None);
+    helpers::add_btn_click_controller(&ui.updates_next_btn, None);
+    helpers::add_btn_click_controller(&ui.events_next_btn, None);
+    helpers::add_btn_click_controller(&ui.updates_previous_btn, None);
+    helpers::add_btn_click_controller(&ui.events_previous_btn, None);
+    helpers::add_btn_click_controller(&ui.launch_btn, None);
+    helpers::add_btn_click_controller(&ui.mods_btn, None);
+    helpers::add_btn_click_controller(&ui.tos_btn, None);
+    helpers::add_btn_click_controller(&ui.store_btn, None);
+    let func: fn(&gtk::Popover) = |popover| {
+        println!("Hola");
+        popover.popup();
+    };
+    helpers::add_btn_click_controller(&ui.acc_btn, Some(&func));
+
     let updates_previous_btn = ui.updates_previous_btn.clone();
     let updates_next_btn = ui.updates_next_btn.clone();
 

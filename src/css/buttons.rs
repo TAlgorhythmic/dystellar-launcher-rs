@@ -8,6 +8,7 @@ pub const CSS: &str = ".info-btn {
    transform: scale(1);
    margin-top: 5px;
    margin-bottom: 5px;
+   font-family: 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, 'Noto Sans', sans-serif;
 }
 .info-btn:hover {
    transform: scale(1.16);
