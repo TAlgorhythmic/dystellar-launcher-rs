@@ -208,23 +208,30 @@ fn add_events(ui: &MainUI) {
     helpers::add_link_controller_button(&ui.d_btn);
     helpers::add_link_controller_button(&ui.y_btn);
     helpers::add_link_controller_button(&ui.launch_btn);
-    helpers::add_btn_click_controller(&ui.x_btn, None);
-    helpers::add_btn_click_controller(&ui.d_btn, None);
-    helpers::add_btn_click_controller(&ui.y_btn, None);
-    helpers::add_btn_click_controller(&ui.settings_btn, None);
-    helpers::add_btn_click_controller(&ui.updates_next_btn, None);
-    helpers::add_btn_click_controller(&ui.events_next_btn, None);
-    helpers::add_btn_click_controller(&ui.updates_previous_btn, None);
-    helpers::add_btn_click_controller(&ui.events_previous_btn, None);
-    helpers::add_btn_click_controller(&ui.launch_btn, None);
-    helpers::add_btn_click_controller(&ui.mods_btn, None);
-    helpers::add_btn_click_controller(&ui.tos_btn, None);
-    helpers::add_btn_click_controller(&ui.store_btn, None);
-    let func: fn(&gtk::Popover) = |popover| {
-        println!("Hola");
-        popover.popup();
-    };
-    helpers::add_btn_click_controller(&ui.acc_btn, Some(&func));
+    helpers::add_btn_click_controller(&ui.x_btn);
+    helpers::add_btn_click_controller(&ui.d_btn);
+    helpers::add_btn_click_controller(&ui.y_btn);
+    helpers::add_btn_click_controller(&ui.settings_btn);
+    helpers::add_btn_click_controller(&ui.updates_next_btn);
+    helpers::add_btn_click_controller(&ui.events_next_btn);
+    helpers::add_btn_click_controller(&ui.updates_previous_btn);
+    helpers::add_btn_click_controller(&ui.events_previous_btn);
+    helpers::add_btn_click_controller(&ui.launch_btn);
+    helpers::add_btn_click_controller(&ui.mods_btn);
+    helpers::add_btn_click_controller(&ui.tos_btn);
+    helpers::add_btn_click_controller(&ui.store_btn);
+    let ges = helpers::add_btn_click_controller(&ui.acc_btn);
+    
+    let tmp = ui.acc_popover.clone();
+
+    ges.connect_released(move |_, _, _, _| {
+        tmp.popup();
+    });
+    
+    let btn = ui.acc_btn.clone();
+    let btn2 = ui.acc_btn.clone();
+    ui.acc_popover.connect_show(move |_| btn.set_sensitive(false));
+    ui.acc_popover.connect_hide(move |_| btn2.set_sensitive(true));
 
     let updates_previous_btn = ui.updates_previous_btn.clone();
     let updates_next_btn = ui.updates_next_btn.clone();
