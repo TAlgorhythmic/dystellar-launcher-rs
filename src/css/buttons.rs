@@ -1,4 +1,10 @@
-pub const CSS: &str = ".info-btn {
+pub const CSS: &str = ".growable {
+   transform: scale(1);
+}
+.growable:hover {
+   transform: scale(1.16);
+}
+.info-btn {
    transition-duration: 0.18s;
    filter: brightness(100%);
 	color: white;
@@ -9,9 +15,6 @@ pub const CSS: &str = ".info-btn {
    margin-top: 5px;
    margin-bottom: 5px;
    font-family: 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, 'Noto Sans', sans-serif;
-}
-.info-btn:hover {
-   transform: scale(1.16);
 }
 .info-btn.active {
    transition-duration: 0.05s;
