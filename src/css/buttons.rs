@@ -16,7 +16,7 @@ pub const CSS: &str = ".growable {
    margin-bottom: 5px;
    font-family: 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, 'Noto Sans', sans-serif;
 }
-.info-btn.active {
+.info-btn:active {
    transition-duration: 0.05s;
    transform: scale(1);
    filter: brightness(50%);
@@ -30,7 +30,7 @@ pub const CSS: &str = ".growable {
 .next-btn:hover {
    background-color: rgba(0, 0, 0, 0.08);
 }
-.next-btn.active {
+.next-btn:active {
    transform: scale(0.92);
 }
 .next-btn.focus {
@@ -45,7 +45,7 @@ pub const CSS: &str = ".growable {
 .previous-btn:hover {
    background-color: rgba(0, 0, 0, 0.08);
 }
-.previous-btn.active {
+.previous-btn:active {
    transform: scale(0.92);
 }
 .previous-btn.focus {
@@ -77,7 +77,7 @@ pub const CSS: &str = ".growable {
 .launch-btn.disabled:hover {
    background: rgba(255, 255, 255, 0.3);
 }
-.launch-btn.active {
+.launch-btn:active {
    transition-duration: 0.045s;
    transform: scale(0.96);
    filter: brightness(50%);
@@ -95,7 +95,7 @@ pub const CSS: &str = ".growable {
 .mods-btn:hover {
    background: rgba(0, 255, 210, 0.18);
 }
-.mods-btn.active {
+.mods-btn:active {
    transition-duration: 0.045s;
    transform: scale(0.96);
    filter: brightness(50%);

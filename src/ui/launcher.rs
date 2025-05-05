@@ -19,9 +19,7 @@ pub fn init(app: &Application) {
     window.style_context().add_class("window");
     window.set_decorated(true);
 
-    unsafe {
-        window.set_child(Some(&components::MAIN_UI.main_content));
-    }
+    window.set_child(Some(&components::MAIN_UI.main_content));
    
     window.present();
 }

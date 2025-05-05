@@ -19,16 +19,16 @@ fn main() {
     let profile = std::env::var("PROFILE").unwrap_or_else(|_| "unknown".to_string());
 
     let client_id: String;
-    let callback_uri: String;
+    let backend_url: String;
 
     if profile == "release" {
         client_id = std::env::var("PROD_CLIENT_ID").expect("Error getting production client id.");
-        callback_uri = std::env::var("PROD_CALLBACK_URI").expect("Error getting production callback uri");
+        backend_url = std::env::var("PROD_BACKEND_URL").expect("Error getting production callback uri");
     } else {
         client_id = std::env::var("TEST_CLIENT_ID").expect("Error getting test client id.");
-        callback_uri = std::env::var("TEST_CALLBACK_URI").expect("Error getting test calback uri.");
+        backend_url = std::env::var("TEST_BACKEND_URL").expect("Error getting test calback uri.");
     }
 
     println!("cargo:rustc-env=CLIENT_ID={}", client_id);
-    println!("cargo:rustc-env=CALLBACK_URI={}", callback_uri);
+    println!("cargo:rustc-env=BACKEND_URL={}", backend_url);
 }

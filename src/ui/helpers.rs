@@ -1,6 +1,5 @@
 use gtk::prelude::*;
 use gtk::{Button, EventControllerMotion, GestureClick};
-use crate::ui::components::{info_btn_onpress, info_btn_onrelease};
 
 pub fn add_link_controller_button(btn: &Button) {
     let link = EventControllerMotion::new();
@@ -18,11 +17,9 @@ pub fn add_btn_click_controller(btn: &Button) -> GestureClick {
     let ges = click.clone();
 
     click.connect_pressed(|event, _, _, _| {
-        event.widget().map(|widget| info_btn_onpress(&widget));
         event.set_state(gtk::EventSequenceState::Claimed);
     });
     click.connect_released(|event, _, _, _| {
-        event.widget().map(|widget| info_btn_onrelease(&widget));
         event.set_state(gtk::EventSequenceState::None);
     });
     btn.add_controller(click);
