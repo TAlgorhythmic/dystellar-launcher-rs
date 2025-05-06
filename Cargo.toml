@@ -11,6 +11,7 @@ dotenv = "0.15.0"
 gtk = { version = "0.9.2", package = "gtk4" }
 webbrowser = "1.0.3"
 json = "0.12.4"
-tokio = { version = "1.43.0", features = ["rt"]}
+tokio = { version = "1.45.0", features = ["rt", "io-util", "net"] }
 hyper = { version = "1.5.2", features = ["http2", "http1", "client"] }
 uuid = { version = "1.16.0", features = ["v4"] }
+hyper-util = { version = "0.1.11", features = ["client", "client-legacy", "http1", "http2", "tokio", "tracing"] }
