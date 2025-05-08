@@ -15,3 +15,4 @@ tokio = { version = "1.45.0", features = ["rt", "io-util", "net"] }
 hyper = { version = "1.5.2", features = ["http2", "http1", "client"] }
 uuid = { version = "1.16.0", features = ["v4"] }
 hyper-util = { version = "0.1.11", features = ["client", "client-legacy", "http1", "http2", "tokio", "tracing"] }
+http-body-util = "0.1.3"
