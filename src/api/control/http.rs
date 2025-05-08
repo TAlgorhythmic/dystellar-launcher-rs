@@ -1,39 +1,19 @@
-use std::{error::Error, fmt::Write, io::Read};
+use std::{collections::HashMap, error::Error, iter::Map, sync::LazyLock, thread::spawn, time::Duration};
 
-use http_body_util::BodyExt;
-use hyper::{body::{self, Incoming}, client::conn::http1::handshake, Request, Response, Uri};
-use hyper_util::rt::TokioIo;
 use json::{object, JsonValue};
-use tokio::net::TcpStream;
+use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
 const CLIENT_ID: &str = env!("CLIENT_ID");
 const BACKEND_URL: &str = env!("BACKEND_URL");
+const AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().timeout_global(Some(Duration::from_secs(6))).build().into());
 
-pub async fn request(path: &str, method: &str, body: JsonValue) -> Result<Response<Incoming>, Box<dyn Error + Send + Sync>> {
-    let abspath = format!("{}{}", BACKEND_URL, path);
-    let url: Uri = abspath.parse()?;
+pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
+    let url = format!("{}{}", BACKEND_URL, path);
 
-    let host = url.host().unwrap();
-    let port = url.port_u16().unwrap_or(80);
-
-    let address = format!("{}:{}", host, port);
-    
-    let stream = TcpStream::connect(address).await?;
-    let io = TokioIo::new(stream);
-
-    let (mut sender, _) = handshake(io).await?;
-
-    let authority = url.authority().unwrap();
-
-    let req = Request::builder()
-        .uri(&url)
-        .header(hyper::header::HOST, authority.as_str())
-        .method(method)
-        .body(String::from(stringify!(body)))?;
-
-    let res = sender.send_request(req).await?;
+    let req = AGENT.get(url).call()?;
+    let res = json::parse(req.into_body().read_to_string()?.as_str())?;
 
     Ok(res)
 }
@@ -42,13 +22,13 @@ pub fn login() {
     let uuid = Uuid::new_v4();
     println!("{uuid}");
 
-    let callback = format!("{BACKEND_URL}/api/microsoft/callback");
+    let callback = "/api/microsoft/callback";
 
     let ms_url = format!("https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id={}&response_type=code&redirect_uri={}&scope=XboxLive.signin%20offline_access&state={}", CLIENT_ID, callback, &uuid);
 
-    tokio::spawn(async move {
-        let uuid_owned = uuid;
-        let lsopt = request(format!("/api/microsoft/loginsession?uuid={uuid_owned}").as_str(), "POST", object! {}).await;
+    spawn(move || {
+        println!("sometit");
+        let lsopt = request(format!("/api/microsoft/loginsession?uuid={uuid_owned}").as_str(), "POST", object! {});
         if lsopt.is_err() {
             // TODO: Error trying to connect to server
             println!("Error connecting to server.");
@@ -56,8 +36,7 @@ pub fn login() {
         }
         
         let lsession_res = lsopt.unwrap();
-        let bod = lsession_res.into_body().collect().await.unwrap().to_bytes();
-        let js = json::parse(String::from_utf8(bod.to_vec()).unwrap().as_str()).unwrap();
+        let js = get_body(lsession_res).await.unwrap();
         
         if !js["ok"].as_bool().unwrap() {
             // TODO: Server error
@@ -66,6 +45,24 @@ pub fn login() {
         }
 
         if webbrowser::open(&ms_url).is_ok() {
+            let login_url = format!("/api/microsoft/login?uuid={uuid_owned}");
+
+            loop {
+                let _ = tokio::time::sleep(Duration::from_secs(2));
+                let res = request(login_url.as_str(), "GET", object! {}).await;
+
+                if let Err(_) = &res {
+                    // TODO: Error
+                    println!("Error ege");
+                }
+
+                let body_res = json::parse(String::from_utf8(res.unwrap().into_body().collect().await.unwrap().to_bytes().to_vec()).unwrap().as_str()).unwrap();
+
+                if body_res["ok"].as_bool().unwrap() {
+                    println!("Logged in");
+                    break;
+                }
+            }
         }
     });
 }

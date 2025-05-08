@@ -4,6 +4,8 @@ pub mod helpers;
 use gtk::prelude::*;
 use gtk::gdk_pixbuf::Pixbuf;
 
+use crate::api::control::http::login;
+
 pub struct MainUI {
     main_content: gtk::Box,
     subheader: gtk::CenterBox,
@@ -275,4 +277,6 @@ fn add_events(ui: &MainUI) {
 
     ui.updates_grid.add_controller(updates);
     ui.events_grid.add_controller(events);
+
+    ui.login_btn.connect_clicked(|_| login());
 }
