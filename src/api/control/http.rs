@@ -1,6 +1,6 @@
-use std::{collections::HashMap, error::Error, iter::Map, sync::LazyLock, thread::spawn, time::Duration};
+use std::{error::Error, sync::LazyLock, thread::spawn, time::Duration};
 
-use json::{object, JsonValue};
+use json::{object, stringify, JsonValue};
 use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
@@ -18,17 +18,31 @@ pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
     Ok(res)
 }
 
+pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
+    let url = format!("{}{}", BACKEND_URL, path);
+
+    let req = AGENT.post(url)
+        .send(stringify(json))?
+        .into_body()
+        .read_to_string()?;
+
+    let res = json::parse(req.as_str())?;
+
+    Ok(res)
+}
+
 pub fn login() {
     let uuid = Uuid::new_v4();
     println!("{uuid}");
 
-    let callback = "/api/microsoft/callback";
+    let callback = format!("{BACKEND_URL}/api/microsoft/callback");
 
-    let ms_url = format!("https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id={}&response_type=code&redirect_uri={}&scope=XboxLive.signin%20offline_access&state={}", CLIENT_ID, callback, &uuid);
+    let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={}&response_type=code&redirect_uri={}&scope=XboxLive.signin%20offline_access&state={}", CLIENT_ID, callback, &uuid);
 
     spawn(move || {
+        let uuid_str = uuid.to_string();
         println!("sometit");
-        let lsopt = request(format!("/api/microsoft/loginsession?uuid={uuid_owned}").as_str(), "POST", object! {});
+        let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
         if lsopt.is_err() {
             // TODO: Error trying to connect to server
             println!("Error connecting to server.");
@@ -36,27 +50,26 @@ pub fn login() {
         }
         
         let lsession_res = lsopt.unwrap();
-        let js = get_body(lsession_res).await.unwrap();
         
-        if !js["ok"].as_bool().unwrap() {
+        if !lsession_res["ok"].as_bool().unwrap() {
             // TODO: Server error
             println!("Server error");
             return;
         }
 
         if webbrowser::open(&ms_url).is_ok() {
-            let login_url = format!("/api/microsoft/login?uuid={uuid_owned}");
+            let login_url = format!("/api/microsoft/login?uuid={uuid_str}");
 
             loop {
-                let _ = tokio::time::sleep(Duration::from_secs(2));
-                let res = request(login_url.as_str(), "GET", object! {}).await;
+                let _ = std::thread::sleep(Duration::from_secs(2));
+                let res = get(login_url.as_str());
 
                 if let Err(_) = &res {
                     // TODO: Error
                     println!("Error ege");
                 }
 
-                let body_res = json::parse(String::from_utf8(res.unwrap().into_body().collect().await.unwrap().to_bytes().to_vec()).unwrap().as_str()).unwrap();
+                let body_res = res.unwrap();
 
                 if body_res["ok"].as_bool().unwrap() {
                     println!("Logged in");
