@@ -22,6 +22,7 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
     let url = format!("{}{}", BACKEND_URL, path);
 
     let req = AGENT.post(url)
+        .content_type("application/json")
         .send(stringify(json))?
         .into_body()
         .read_to_string()?;
@@ -33,7 +34,6 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
 
 pub fn login() {
     let uuid = Uuid::new_v4();
-    println!("{uuid}");
 
     let callback = format!("{BACKEND_URL}/api/microsoft/callback");
 
@@ -41,7 +41,6 @@ pub fn login() {
 
     spawn(move || {
         let uuid_str = uuid.to_string();
-        println!("sometit");
         let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
         if lsopt.is_err() {
             // TODO: Error trying to connect to server
