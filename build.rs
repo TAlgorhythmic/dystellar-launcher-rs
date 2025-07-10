@@ -16,7 +16,7 @@ fn main() {
 
     dotenv().ok();
 
-    let profile = std::env::var("PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let profile = std::env::var("PROFILE").unwrap_or("unknown".to_string());
 
     let client_id: String;
     let backend_url: String;

@@ -1,4 +1,3 @@
-use crate::ui::components;
 use crate::css;
 use crate::ui::main_ui::init_main_ui;
 use gtk::prelude::*;
