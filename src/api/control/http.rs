@@ -5,9 +5,9 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-const CLIENT_ID: &str = env!("CLIENT_ID");
-const BACKEND_URL: &str = env!("BACKEND_URL");
-const AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().timeout_global(Some(Duration::from_secs(6))).build().into());
+static CLIENT_ID: &str = env!("CLIENT_ID");
+static BACKEND_URL: &str = env!("BACKEND_URL");
+static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().timeout_global(Some(Duration::from_secs(6))).build().into());
 
 pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
     let url = format!("{}{}", BACKEND_URL, path);
@@ -42,6 +42,7 @@ pub fn login() {
     spawn(move || {
         let uuid_str = uuid.to_string();
         let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
+
         if lsopt.is_err() {
             // TODO: Error trying to connect to server
             println!("Error connecting to server.");

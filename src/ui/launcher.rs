@@ -1,5 +1,6 @@
 use crate::ui::components;
 use crate::css;
+use crate::ui::main_ui::init_main_ui;
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow, glib};
 
@@ -19,8 +20,9 @@ pub fn init(app: &Application) {
     window.style_context().add_class("window");
     window.set_decorated(true);
 
-    window.set_child(Some(&components::MAIN_UI.main_content));
-   
+    let ui = init_main_ui();
+
+    window.set_child(Some(&ui.main_content));
     window.present();
 }
 
