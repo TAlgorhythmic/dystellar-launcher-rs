@@ -10,6 +10,7 @@ pub const CSS: &str = ".info-holder {
 .content-grid {
 	background-color: rgba(0, 0, 0, 0.3);
 	border-radius: 36px;
+	outline: 1px solid white;
 }
 .central-box {
 	margin-right: 20px;

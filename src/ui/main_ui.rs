@@ -5,7 +5,7 @@ use crate::api::control::http::login;
 use crate::ui::helpers::add_link_controller_button;
 
 pub struct MainUI {
-    main_content: gtk::Box,
+    pub main_content: gtk::Box,
     subheader: gtk::CenterBox,
     info_holder: gtk::Box,
     settings_btn: gtk::Button,

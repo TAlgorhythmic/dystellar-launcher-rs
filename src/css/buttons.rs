@@ -102,16 +102,18 @@ pub const CSS: &str = ".growable {
 }
 .popover-btn {
 	margin: 8px;
-	min-height: 15px;
+	min-height: min-content;
+	min-width: 100%;
 	background: transparent;
 	background-color: transparent;
 	border-radius: 14px;
 }
 .popover-btn:hover {
 	outline: 1px solid #007C4A;
+	background: rgba(255, 255, 255, 0.02);
 }
 .popover-btn:active {
-	background: rgba(255, 255, 255, 0.04);
 	outline: 1px solid #00A966;
+	background: rgba(255, 255, 255, 0.08);
 }
 ";
