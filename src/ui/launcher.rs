@@ -12,12 +12,11 @@ pub fn init(app: &Application) {
         .name("Dystellar Network MMORPG | Official Launcher")
         .default_width(1280)
         .default_height(720)
+        .decorated(true)
+        .css_classes(["window"])
         .build();
 
     css::inject_css();
-
-    window.style_context().add_class("window");
-    window.set_decorated(true);
 
     let ui = init_main_ui();
 
