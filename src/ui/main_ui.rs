@@ -3,6 +3,7 @@ use gtk::gdk_pixbuf::Pixbuf;
 
 use crate::api::control::http::login;
 use crate::ui::helpers::add_link_controller_button;
+use crate::utils::img::build_img_from_static_bytes;
 
 pub struct MainUI {
     pub main_content: gtk::Box,
@@ -134,63 +135,33 @@ pub fn init_main_ui() -> MainUI {
 }
 
 fn init_icons(ui: &MainUI) {
-    let f_x;
-    let f_d;
-    let f_y;
-    let settings;
-    let previous;
-    let next;
-    let nouser;
-    
-    #[cfg(not(target_os = "windows"))] {
-        f_x = include_bytes!("./../../assets/icons/x.symbolic.png");
-        f_d = include_bytes!("./../../assets/icons/discord.symbolic.png");
-        f_y = include_bytes!("./../../assets/icons/youtube.symbolic.png");
-        settings = include_bytes!("./../../assets/icons/settings.symbolic.png");
-        previous = include_bytes!("./../../assets/icons/previous.symbolic.png");
-        next = include_bytes!("./../../assets/icons/next.symbolic.png");
-        nouser = include_bytes!("./../../assets/icons/nouser.symbolic.png");
-    }
+    let f_x = include_bytes!("./../../assets/icons/x.symbolic.png");
+    let f_d = include_bytes!("./../../assets/icons/discord.symbolic.png");
+    let f_y = include_bytes!("./../../assets/icons/youtube.symbolic.png");
+    let settings = include_bytes!("./../../assets/icons/settings.symbolic.png");
+    let nouser = include_bytes!("./../../assets/icons/nouser.symbolic.png");
+    let previous = include_bytes!("./../../assets/icons/previous.symbolic.png");
+    let next = include_bytes!("./../../assets/icons/next.symbolic.png");
 
-    let bytes_x = gtk::glib::Bytes::from_owned(f_x);
-    let bytes_d = gtk::glib::Bytes::from_owned(f_d);
-    let bytes_y = gtk::glib::Bytes::from_owned(f_y);
-    let bytes_sett = gtk::glib::Bytes::from_owned(settings);
-    let bytes_prev = gtk::glib::Bytes::from_owned(previous);
-    let bytes_next = gtk::glib::Bytes::from_owned(next);
-    let bytes_nouser = gtk::glib::Bytes::from_owned(nouser);
-
-    let stream_x = gtk::gio::MemoryInputStream::from_bytes(&bytes_x);
-    let stream_d = gtk::gio::MemoryInputStream::from_bytes(&bytes_d);
-    let stream_y = gtk::gio::MemoryInputStream::from_bytes(&bytes_y);
-    let stream_sett = gtk::gio::MemoryInputStream::from_bytes(&bytes_sett);
-    let stream_prev = gtk::gio::MemoryInputStream::from_bytes(&bytes_prev);
-    let stream_next = gtk::gio::MemoryInputStream::from_bytes(&bytes_next);
-    let stream_nouser = gtk::gio::MemoryInputStream::from_bytes(&bytes_nouser);
-
-    let pixbuf_x = Pixbuf::from_stream(&stream_x, gtk::gio::Cancellable::NONE);
-    let pixbuf_d = Pixbuf::from_stream(&stream_d, gtk::gio::Cancellable::NONE);
-    let pixbuf_y = Pixbuf::from_stream(&stream_y, gtk::gio::Cancellable::NONE);
-    let pixbuf_sett = Pixbuf::from_stream(&stream_sett, gtk::gio::Cancellable::NONE);
-    let pixbuf_prev = Pixbuf::from_stream(&stream_prev, gtk::gio::Cancellable::NONE).expect("Pixbuf error prev.");
-    let pixbuf_next = Pixbuf::from_stream(&stream_next, gtk::gio::Cancellable::NONE).expect("Pixbuf error next.");
-    let pixbuf_nouser = Pixbuf::from_stream(&stream_nouser, gtk::gio::Cancellable::NONE);
-
-    let img_x = gtk::Image::new(); img_x.set_from_pixbuf(Some(&pixbuf_x.expect("Pixbuf error X.")));
-    let img_d = gtk::Image::new(); img_d.set_from_pixbuf(Some(&pixbuf_d.expect("Pixbuf error D.")));
-    let img_y = gtk::Image::new(); img_y.set_from_pixbuf(Some(&pixbuf_y.expect("Pixbuf error Y.")));
-    let img_sett = gtk::Image::new(); img_sett.set_from_pixbuf(Some(&pixbuf_sett.expect("Pixbuf error sett.")));
-    let img_nouser = gtk::Image::new(); img_nouser.set_from_pixbuf(Some(&pixbuf_nouser.expect("Pixbuf error nouser.")));
+    let img_x = build_img_from_static_bytes(f_x).expect("Pixbuf error X");
+    let img_d = build_img_from_static_bytes(f_d).expect("Pixbuf error D");
+    let img_y = build_img_from_static_bytes(f_y).expect("Pixbuf error Y");
+    let img_sett = build_img_from_static_bytes(settings).expect("Pixbuf error sett");
+    let img_nouser = build_img_from_static_bytes(nouser).expect("Pixbuf error nouser");
+    let img_prev_updates = build_img_from_static_bytes(previous).expect("Pixbuf error previous");
+    let img_prev_events = build_img_from_static_bytes(previous).expect("Pixbuf error previous");
+    let img_next_updates = build_img_from_static_bytes(next).expect("Pixbuf error previous");
+    let img_next_events = build_img_from_static_bytes(next).expect("Pixbuf error previous");
 
     ui.y_btn.set_child(Some(&img_y));
     ui.d_btn.set_child(Some(&img_d));
     ui.x_btn.set_child(Some(&img_x));
     ui.settings_btn.set_child(Some(&img_sett));
     ui.acc_btn.set_child(Some(&img_nouser));
-    ui.updates_previous_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_prev))));
-    ui.events_previous_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_prev))));
-    ui.updates_next_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_next))));
-    ui.events_next_btn.set_child(Some(&gtk::Image::from_pixbuf(Some(&pixbuf_next))));
+    ui.updates_previous_btn.set_child(Some(&img_prev_updates));
+    ui.events_previous_btn.set_child(Some(&img_prev_events));
+    ui.updates_next_btn.set_child(Some(&img_next_updates));
+    ui.events_next_btn.set_child(Some(&img_next_events));
 }
 
 fn add_events(ui: &MainUI) {

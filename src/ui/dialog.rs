@@ -67,7 +67,7 @@ fn build_dialog_content(msg: &str, icon: &Image) -> Box {
     res
 }
 
-pub fn init_confirmation_dialog<F>(title: &str, message: &str, icon: &Image, f: F) -> Window
+pub fn init_confirmation_dialog<F>(title: &str, message: &str, icon: &Image, f: F, ok_btn_label: Option<&str>) -> Window
 where
     F: Fn() -> () + 'static
 {
@@ -84,15 +84,8 @@ where
         .homogeneous(true)
         .build();
 
-    let okbutton = Button::builder()
-        .css_classes(["dialog-ok-btn"])
-        .label("Proceed")
-        .focusable(true)
-        .build();
-    let cancelbutton = Button::builder()
-        .css_classes(["dialog-cancel-btn"])
-        .label("Cancel")
-        .build();
+    let okbutton = Button::builder().css_classes(["dialog-ok-btn"]).label(ok_btn_label.unwrap_or("Proceed")).focusable(true).build();
+    let cancelbutton = Button::builder().css_classes(["dialog-cancel-btn"]).label("Cancel").build();
 
     let wc = window.clone();
     let wc2 = window.clone();
