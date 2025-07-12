@@ -34,4 +34,15 @@ pub const CSS: &str = ".info-holder {
 .popover-box {
 	min-width: 150px;
 }
+.dialog {
+	background-color: #363636;
+	background: #363636;
+}
+.dialog-icon {
+	min-height: 120px;
+	min-width: 120px;
+}
+.dialog-icon, .dialog-content, .dialog-btns, .dialog-ok-btn, .dialog-cancel-btn {
+	margin: 6px;
+}
 ";

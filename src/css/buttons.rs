@@ -103,7 +103,6 @@ pub const CSS: &str = ".growable {
 .popover-btn {
 	margin: 8px;
 	min-height: min-content;
-	min-width: 100%;
 	background: transparent;
 	background-color: transparent;
 	border-radius: 14px;

@@ -4,6 +4,5 @@ pub fn store_session() {
     
 }
 
-pub fn retrieve_session() -> MicrosoftSession {
-    MicrosoftSession::new()
-}
+/*pub fn retrieve_session() -> MicrosoftSession {
+}*/

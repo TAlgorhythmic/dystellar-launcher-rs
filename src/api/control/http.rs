@@ -1,9 +1,14 @@
 use std::{error::Error, sync::LazyLock, thread::spawn, time::Duration};
 
+use gtk::glib::MainContext;
+use gtk::prelude::*;
+use gtk::glib::prelude::*;
 use json::{object, stringify, JsonValue};
 use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
+
+use crate::ui::components::{show_confirmation_dialog, ICON_ERROR};
 
 static CLIENT_ID: &str = env!("CLIENT_ID");
 static BACKEND_URL: &str = env!("BACKEND_URL");
@@ -33,18 +38,24 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
 }
 
 pub fn login() {
-    let uuid = Uuid::new_v4();
-
-    let callback = format!("{BACKEND_URL}/api/microsoft/callback");
-
-    let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={}&response_type=code&redirect_uri={}&scope=XboxLive.signin%20offline_access&state={}", CLIENT_ID, callback, &uuid);
-
     spawn(move || {
+        let uuid = Uuid::new_v4();
+        let callback = format!("{BACKEND_URL}/api/microsoft/callback");
+
+        let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={}&response_type=code&redirect_uri={}&scope=XboxLive.signin%20offline_access&state={}", CLIENT_ID, callback, &uuid);
+
         let uuid_str = uuid.to_string();
         let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
 
         if lsopt.is_err() {
-            // TODO: Error trying to connect to server
+            MainContext::default().invoke(|| {
+                show_confirmation_dialog(
+                    "Connection Error",
+                    "Error connecting to server, please check your internet connection.",
+                    Some("Try Again"),
+                    ICON_ERROR,
+                    || login());
+            });
             println!("Error connecting to server.");
             return;
         }
@@ -53,6 +64,14 @@ pub fn login() {
         
         if !lsession_res["ok"].as_bool().unwrap() {
             // TODO: Server error
+            MainContext::default().invoke(|| {
+                show_confirmation_dialog(
+                    "Server Error",
+                    "An unexpected error occured, please try again later. \nSorry for the inconvenience.",
+                    Some("Try Again"),
+                    ICON_ERROR,
+                    || login());
+            });
             println!("Server error");
             return;
         }

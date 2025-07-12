@@ -1,20 +1,21 @@
+use gtk::ffi::gtk_window_set_focus;
 use gtk::prelude::*;
 use gtk::{Box, Button, Image, Label, Window};
+
+use crate::ui::launcher::APP_INSTANCE;
 
 fn init_dialog(title: &str) -> Window {
     Window::builder()
         .title(title)
-        .default_width(800)
-        .default_height(300)
+        .default_width(600)
         .css_classes(["dialog"])
         .resizable(false)
         .name(title)
         .modal(true)
-        .halign(gtk::Align::Center)
+        .halign(gtk::Align::Fill)
         .valign(gtk::Align::Center)
-        .hexpand(false)
+        .hexpand(true)
         .vexpand(true)
-        .decorated(true)
         .visible(true)
         .build()
 }
@@ -26,32 +27,40 @@ fn build_label(msg: &str) -> Label {
         .vexpand(true)
         .wrap_mode(gtk::pango::WrapMode::Word)
         .valign(gtk::Align::Center)
-        .halign(gtk::Align::Start)
+        .halign(gtk::Align::Center)
         .label(msg)
         .build()
 }
 
 fn build_child() -> Box {
     Box::builder()
-        .hexpand(false)
+        .hexpand(true)
         .vexpand(true)
         .css_classes(["dialog-container"])
         .spacing(10)
         .valign(gtk::Align::Center)
-        .halign(gtk::Align::Center)
+        .halign(gtk::Align::Fill)
         .orientation(gtk::Orientation::Vertical)
         .build()
 }
 
 fn build_dialog_content(msg: &str, icon: &Image) -> Box {
     let res = Box::builder()
-        .hexpand(false)
+        .hexpand(true)
         .vexpand(true)
         .css_classes(["dialog-content"])
         .spacing(10)
         .orientation(gtk::Orientation::Horizontal)
         .valign(gtk::Align::Start)
-        .halign(gtk::Align::Center)
+        .halign(gtk::Align::Start)
+        .build();
+
+    let inner = Box::builder()
+        .hexpand(true)
+        .vexpand(true)
+        .orientation(gtk::Orientation::Horizontal)
+        .valign(gtk::Align::Center)
+        .halign(gtk::Align::Start)
         .build();
 
     icon.set_vexpand(false);
@@ -63,7 +72,8 @@ fn build_dialog_content(msg: &str, icon: &Image) -> Box {
     let label = build_label(msg);
     
     res.append(icon);
-    res.append(&label);
+    inner.append(&label);
+    res.append(&inner);
     res
 }
 
@@ -79,9 +89,11 @@ where
     let options = Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .vexpand(false)
-        .hexpand(false)
+        .hexpand(true)
+        .valign(gtk::Align::Center)
+        .halign(gtk::Align::Center)
         .spacing(20)
-        .homogeneous(true)
+        .css_classes(["dialog-btns"])
         .build();
 
     let okbutton = Button::builder().css_classes(["dialog-ok-btn"]).label(ok_btn_label.unwrap_or("Proceed")).focusable(true).build();
@@ -93,13 +105,18 @@ where
     cancelbutton.connect_clicked(move |_| wc.close());
 
     okbutton.connect_clicked(move |_| {
-        wc2.clone();
+        wc2.close();
         f();
     });
 
     options.append(&cancelbutton);
     options.append(&okbutton);
 
-    window.set_focus_child(Some(&okbutton));
+    child.append(&options);
+    window.set_child(Some(&child));
+
+    APP_INSTANCE.with(|app| window.set_application(Some(app.get().unwrap())));
+    GtkWindowExt::set_focus(&window, Some(&okbutton));
+
     window
 }
