@@ -4,12 +4,6 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
-[target.x86_64-pc-windows-gnu]
-rustflags = ["-C", "target-feature=-avx,-avx2,-avx512"]
-
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=-avx,-avx2,-avx512"]
-
 [build-dependencies]
 dotenv = "0.15.0"
 
