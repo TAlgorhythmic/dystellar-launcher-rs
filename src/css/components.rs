@@ -44,5 +44,4 @@ pub const CSS: &str = ".info-holder {
 }
 .dialog-icon, .dialog-content, .dialog-btns, .dialog-ok-btn, .dialog-cancel-btn {
 	margin: 6px;
-}
-";
+}";

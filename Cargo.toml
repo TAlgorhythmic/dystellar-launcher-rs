@@ -5,7 +5,12 @@ edition = "2021"
 build = "build.rs"
 
 [package.metadata.winres]
-gui = true
+gui_app = true
+
+[[bin]]
+name = "dystellar-launcher"
+path = "src/main.rs"
+windows_subsystem = "windows"
 
 [build-dependencies]
 dotenv = "0.15.0"

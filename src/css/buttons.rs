@@ -114,5 +114,4 @@ pub const CSS: &str = ".growable {
 .popover-btn:active {
 	outline: 1px solid #00A966;
 	background: rgba(255, 255, 255, 0.08);
-}
-";
+}";

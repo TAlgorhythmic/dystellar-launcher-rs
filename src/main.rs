@@ -1,3 +1,5 @@
+//#![windows_subsystem = "windows"]
+
 use gtk::glib;
 mod ui;
 mod css;
