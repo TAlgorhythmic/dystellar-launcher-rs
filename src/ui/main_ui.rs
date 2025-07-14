@@ -1,5 +1,4 @@
 use gtk::prelude::*;
-use gtk::gdk_pixbuf::Pixbuf;
 
 use crate::api::control::http::login;
 use crate::ui::helpers::add_link_controller_button;

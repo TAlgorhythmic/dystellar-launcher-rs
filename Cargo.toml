@@ -1,16 +1,12 @@
 [package]
 name = "dystellar-launcher"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 build = "build.rs"
-
-[package.metadata.winres]
-gui_app = true
 
 [[bin]]
 name = "dystellar-launcher"
 path = "src/main.rs"
-windows_subsystem = "windows"
 
 [build-dependencies]
 dotenv = "0.15.0"
@@ -24,3 +20,4 @@ ureq = { version = "3.0.11", default-features = false, features = ["native-tls",
 sled = "0.34.7"
 directories = "6.0.0"
 chrono = "0.4.41"
+libadwaita = "0.7.2"
