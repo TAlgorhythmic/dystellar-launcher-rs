@@ -3,6 +3,7 @@ pub const CSS: &str = "headerbar {
 }
 button {
    color: white;
+   border: none;
 }
 .main-content {
    margin: 28px;
