@@ -38,11 +38,13 @@ pub fn init(app: &Application) {
 }
 
 pub fn run() -> glib::ExitCode {
+    let _ = gtk::init();
+    #[cfg(target_os = "windows")]
+    force_enable_animations();
     let app = Application::builder().application_id(APP_ID).build();
     APP_INSTANCE.with(|cell| cell.set(app.clone()).expect("Only assign once"));
     app.connect_activate(init);
-    #[cfg(target_os = "windows")]
-    force_enable_animations();
+    
 
     app.run()
 }
