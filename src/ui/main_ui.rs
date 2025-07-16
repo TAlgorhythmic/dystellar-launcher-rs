@@ -83,7 +83,9 @@ pub fn init_main_ui() -> MainUI {
     info_holder.append(&settings_btn);
     info_holder.append(&store_btn);
     info_holder.append(&tos_btn);
+
     let popover_widget = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["popover-box"]).focusable(false).build();
+
     popover_widget.append(&login_btn);
     popover_widget.append(&help_btn);
     acc_popover.set_child(Some(&popover_widget));

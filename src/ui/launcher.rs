@@ -2,7 +2,7 @@ use std::cell::OnceCell;
 
 use crate::css;
 use crate::ui::main_ui::init_main_ui;
-use gtk::{prelude::*, Settings};
+use gtk::prelude::*;
 use gtk::glib;
 use libadwaita::{Application, ApplicationWindow};
 
@@ -20,7 +20,6 @@ pub fn init(app: &Application) {
         .name("Dystellar Network MMORPG | Official Launcher")
         .default_width(1280)
         .default_height(720)
-        .decorated(true)
         .content(&ui.main_content)
         .css_classes(["window"])
         .build();
