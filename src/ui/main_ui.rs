@@ -2,6 +2,7 @@ use gtk::prelude::*;
 
 use crate::api::control::http::login;
 use crate::ui::helpers::add_link_controller_button;
+use crate::ui::windows_animations::{windows_add_growable_animation_bin};
 use crate::utils::img::build_img_from_static_bytes;
 
 pub struct MainUI {
@@ -61,7 +62,7 @@ pub fn init_main_ui() -> MainUI {
     let updates_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).hexpand(true).vexpand(true).build();
     let updates_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let updates_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
-    let updates_main_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).hexpand(true).css_classes(["web-content", "growable"]).build();
+    let updates_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content", "growable"]).build();
     let gamestate_box: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).valign(gtk::Align::Center).css_classes(["central-box"]).build();
     let center_img: gtk::Image = gtk::Image::new();
     let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Loading...").css_classes(["launch-btn", "disabled"]).build();
@@ -69,7 +70,7 @@ pub fn init_main_ui() -> MainUI {
     let events_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).hexpand(true).vexpand(true).css_classes(["content-grid"]).build();
     let events_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let events_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
-    let events_main_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).hexpand(true).css_classes(["web-content", "growable"]).build();
+    let events_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content", "growable"]).build();
     let footer: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["footer"]).build();
     let socials_box: gtk::Box = gtk::Box::builder().css_classes(["info-holder"]).hexpand(false).orientation(gtk::Orientation::Horizontal).build();
     let d_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_start(18).margin_end(4).css_classes(["info-btn", "growable"]).build();
@@ -80,9 +81,9 @@ pub fn init_main_ui() -> MainUI {
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
 
     // Set hierarchy
-    info_holder.append(&settings_btn);
-    info_holder.append(&store_btn);
-    info_holder.append(&tos_btn);
+    info_holder.append(&windows_add_growable_animation_bin(settings_btn.clone()));
+    info_holder.append(&windows_add_growable_animation_bin(store_btn.clone()));
+    info_holder.append(&windows_add_growable_animation_bin(tos_btn.clone()));
 
     let popover_widget = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["popover-box"]).focusable(false).build();
 

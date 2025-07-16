@@ -1,6 +1,6 @@
+use crate::css;
 use std::cell::OnceCell;
 
-use crate::css;
 use crate::ui::main_ui::init_main_ui;
 use gtk::prelude::*;
 use gtk::glib;
@@ -13,6 +13,8 @@ thread_local! {
 }
 
 pub fn init(app: &Application) {
+    css::inject_css();
+
     let ui = init_main_ui();
     let window = ApplicationWindow::builder()
         .application(app)
@@ -23,8 +25,6 @@ pub fn init(app: &Application) {
         .content(&ui.main_content)
         .css_classes(["window"])
         .build();
-
-    css::inject_css();
 
     window.set_child(Some(&ui.main_content));
     window.present();

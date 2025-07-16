@@ -2,9 +2,9 @@
 
 use gtk::glib;
 mod ui;
-mod css;
 mod api;
 mod utils;
+mod css;
 
 fn main() -> glib::ExitCode {
     ui::launcher::run()

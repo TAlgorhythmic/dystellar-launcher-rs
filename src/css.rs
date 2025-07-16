@@ -1,13 +1,9 @@
 use gtk::CssProvider;
 use gtk::gdk::Display;
 
-pub mod buttons;
-pub mod global;
-pub mod components;
-
-static GLOBAL_CSS: &'static str = include_str!("../../css_documents/global.css");
-static BUTTONS_CSS: &'static str = include_str!("../../css_documents/buttons.css");
-static COMPONENTS_CSS: &'static str = include_str!("../../css_documents/components.css");
+static GLOBAL_CSS: &'static str = include_str!("../css_documents/global.css");
+static BUTTONS_CSS: &'static str = include_str!("../css_documents/buttons.css");
+static COMPONENTS_CSS: &'static str = include_str!("../css_documents/components.css");
 
 pub fn inject_css() {
     let provider = CssProvider::new();

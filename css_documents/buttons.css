@@ -1,8 +1,8 @@
 .growable {
-	transform: scale(1);
+	/*transform: scale(1);*/
 }
 .growable:hover {
-	transform: scale(1.16);
+	/*transform: scale(1.16);*/
 }
 .info-btn {
 	transition-duration: 0.18s;
