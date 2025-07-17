@@ -1,4 +1,4 @@
-use gtk::{prelude::GtkWindowExt, Align, Button, Image};
+use gtk::{prelude::{GtkWindowExt, WidgetExt}, Button, Image};
 use libadwaita::Bin;
 
 use crate::{ui::dialog::init_confirmation_dialog, utils::img::build_img_from_static_bytes};
@@ -16,14 +16,14 @@ where
     dialog.present();
 }
 
-pub fn bin_wrap_btn(btn: Button, hexpand: bool, vexpand: bool, halign: Align, valign: Align) -> Bin {
+pub fn bin_wrap_btn(btn: Button) -> Bin {
     Bin::builder()
         .child(&btn)
-        .hexpand(hexpand)
-        .vexpand(vexpand)
+        .hexpand(btn.hexpands())
+        .vexpand(btn.vexpands())
         .css_classes(["bin-wrapper"])
-        .halign(halign)
-        .valign(valign)
+        .halign(btn.halign())
+        .valign(btn.valign())
         .overflow(gtk::Overflow::Visible)
         .build()
 }

@@ -59,7 +59,7 @@ pub fn init_main_ui() -> MainUI {
     let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
     let help_btn: gtk::Button = gtk::Button::builder().label("Help").focusable(false).css_classes(["popover-btn"]).build();
     let central_content: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).row_homogeneous(true).column_homogeneous(true).hexpand(true).vexpand(true).css_classes(["central-content"]).build();
-    let updates_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).hexpand(true).vexpand(true).build();
+    let updates_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).css_classes(["content-grid"]).overflow(gtk::Overflow::Hidden).hexpand(true).vexpand(true).build();
     let updates_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let updates_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
     let updates_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
@@ -67,7 +67,7 @@ pub fn init_main_ui() -> MainUI {
     let center_img: gtk::Image = gtk::Image::new();
     let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Loading...").hexpand(true).halign(gtk::Align::Fill).css_classes(["launch-btn", "disabled"]).build();
     let mods_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Mods").hexpand(true).css_classes(["mods-btn"]).build();
-    let events_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).hexpand(true).vexpand(true).css_classes(["content-grid"]).build();
+    let events_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).overflow(gtk::Overflow::Hidden).hexpand(true).vexpand(true).css_classes(["content-grid"]).build();
     let events_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let events_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
     let events_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
@@ -81,9 +81,9 @@ pub fn init_main_ui() -> MainUI {
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
 
     // Set hierarchy
-    info_holder.append(&add_clickable_growable_animation_btn(settings_btn.clone(), false, false, gtk::Align::Center, gtk::Align::Center));
-    info_holder.append(&add_clickable_growable_animation_btn(store_btn.clone(), false, false, gtk::Align::Center, gtk::Align::Center));
-    info_holder.append(&add_clickable_growable_animation_btn(tos_btn.clone(), false, false, gtk::Align::Center, gtk::Align::Center));
+    info_holder.append(&add_clickable_growable_animation_btn(settings_btn.clone()));
+    info_holder.append(&add_clickable_growable_animation_btn(store_btn.clone()));
+    info_holder.append(&add_clickable_growable_animation_btn(tos_btn.clone()));
 
     let popover_widget = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["popover-box"]).focusable(false).build();
 
@@ -91,28 +91,28 @@ pub fn init_main_ui() -> MainUI {
     popover_widget.append(&help_btn);
     acc_popover.set_child(Some(&popover_widget));
     acc_popover.set_parent(&acc_btn);
-    acc_holder.append(&acc_btn);
+    acc_holder.append(&add_growable_animation_btn(acc_btn.clone()));
     subheader.set_start_widget(Some(&info_holder));
     subheader.set_end_widget(Some(&acc_holder));
 
-    gamestate_box.append(&add_clickable_animation_btn(launch_btn.clone(), true, false, gtk::Align::Fill, gtk::Align::Center));
-    gamestate_box.append(&add_clickable_animation_btn(mods_btn.clone(), true, false, gtk::Align::Fill, gtk::Align::Center));
+    gamestate_box.append(&add_clickable_animation_btn(launch_btn.clone()));
+    gamestate_box.append(&add_clickable_animation_btn(mods_btn.clone()));
 
-    updates_grid.attach(&updates_main_btn, 0, 0, 6, 1);
-    updates_grid.attach(&updates_previous_btn, 0, 0, 1, 1);
-    updates_grid.attach(&updates_next_btn, 5, 0, 1, 1);
+    updates_grid.attach(&add_growable_animation_btn(updates_main_btn.clone()), 0, 0, 6, 1);
+    updates_grid.attach(&add_clickable_animation_btn(updates_previous_btn.clone()), 0, 0, 1, 1);
+    updates_grid.attach(&add_clickable_animation_btn(updates_next_btn.clone()), 5, 0, 1, 1);
     
     events_grid.attach(&events_main_btn, 0, 0, 6, 1);
-    events_grid.attach(&events_previous_btn, 0, 0, 1, 1);
-    events_grid.attach(&events_next_btn, 5, 0, 1, 1);
+    events_grid.attach(&add_clickable_animation_btn(events_previous_btn.clone()), 0, 0, 1, 1);
+    events_grid.attach(&add_clickable_animation_btn(events_next_btn.clone()), 5, 0, 1, 1);
     
     central_content.attach(&updates_grid, 0, 0, 1, 1);
     central_content.attach(&gamestate_box, 1, 0, 1, 1);
     central_content.attach(&events_grid, 2, 0, 1, 1);
     
-    socials_box.append(&d_btn);
-    socials_box.append(&y_btn);
-    socials_box.append(&x_btn);
+    socials_box.append(&add_clickable_growable_animation_btn(d_btn.clone()));
+    socials_box.append(&add_clickable_growable_animation_btn(y_btn.clone()));
+    socials_box.append(&add_clickable_growable_animation_btn(x_btn.clone()));
 
     dyst_box.append(&dyst_logo);
     dyst_box.append(&dyst_label);
@@ -178,14 +178,18 @@ fn add_events(ui: &MainUI) {
     ui.acc_btn.connect_clicked(move |btn| {
         tmp.popup();
         tmp.add_css_class("shown");
+
+        #[cfg(not(target_os = "windows"))]
         btn.remove_css_class("growable");
     });
     
     let btn = ui.acc_btn.clone();
     
     ui.acc_popover.connect_hide(move |e| {
-        btn.add_css_class("growable");
         e.remove_css_class("shown");
+
+        #[cfg(not(target_os = "windows"))]
+        btn.add_css_class("growable");
     });
 
     ui.login_btn.connect_clicked(|_| login());

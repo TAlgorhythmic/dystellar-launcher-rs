@@ -70,7 +70,7 @@ fn shrink_click_animation(btn: Button) -> TimedAnimation {
         .build()
 }
 
-pub fn add_clickable_growable_animation_btn(btn: Button, hexpand: bool, vexpand: bool, halign: Align, valign: Align) -> Bin {
+pub fn add_clickable_growable_animation_btn(btn: Button) -> Bin {
     #[cfg(target_os = "windows")] {
         let anim_grow = grow_hover_anim(btn.clone());
         let anim_grow_cl = anim_grow.clone();
@@ -130,10 +130,10 @@ pub fn add_clickable_growable_animation_btn(btn: Button, hexpand: bool, vexpand:
         btn.add_css_class("clickable");
     }
 
-    bin_wrap_btn(btn, hexpand, vexpand, halign, valign)
+    bin_wrap_btn(btn)
 }
 
-pub fn add_clickable_animation_btn(btn: Button, hexpand: bool, vexpand: bool, halign: Align, valign: Align) -> Bin {
+pub fn add_clickable_animation_btn(btn: Button) -> Bin {
     #[cfg(target_os = "windows")] {
         let shrink_click = shrink_click_animation(btn.clone());
         let shrink_click_cl = shrink_click.clone();
@@ -173,10 +173,10 @@ pub fn add_clickable_animation_btn(btn: Button, hexpand: bool, vexpand: bool, ha
         btn.add_css_class("clickable");
     }
 
-    bin_wrap_btn(btn, hexpand, vexpand, halign, valign)
+    bin_wrap_btn(btn)
 }
 
-pub fn add_growable_animation_bin(btn: Button, hexpand: bool, vexpand: bool, halign: Align, valign: Align) -> Bin {
+pub fn add_growable_animation_btn(btn: Button) -> Bin {
     #[cfg(target_os = "windows")] {
         let anim = grow_hover_anim(btn.clone());
         let anim_cl = anim.clone();
@@ -197,5 +197,5 @@ pub fn add_growable_animation_bin(btn: Button, hexpand: bool, vexpand: bool, hal
         btn.add_css_class("growable");
     }
 
-    bin_wrap_btn(btn, hexpand, vexpand, halign, valign)
+    bin_wrap_btn(btn)
 }
