@@ -5,6 +5,7 @@
 	transform: scale(1.16);
 }
 .clickable {
+	transition-duration: 0.25s;
 	transform: scale(1);
 	filter: brightness(1);
 }
@@ -59,7 +60,6 @@
 	text-shadow: 0px 0px 10px black;
 	border-radius: 100px;
 	min-height: 60px;
-	margin: 8px;
 }
 .launch-btn.enabled {
 	background: rgba(0, 255, 210, 0.2);
@@ -78,12 +78,11 @@
 	background: rgba(255, 255, 255, 0.3);
 }
 .mods-btn {
-	transition-duration: 0.25s;
 	border: 1px solid rgba(0, 255, 210, 0.53);
 	background: rgba(0, 0, 0, 0.2);
 	border-radius: 12px;
-	margin-left: 48px;
 	margin-right: 48px;
+	margin-left: 48px;
 }
 .mods-btn:hover {
 	background: rgba(0, 255, 210, 0.18);

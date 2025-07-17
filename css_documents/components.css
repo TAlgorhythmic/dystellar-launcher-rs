@@ -45,3 +45,7 @@
 .dialog-icon, .dialog-content, .dialog-btns, .dialog-ok-btn, .dialog-cancel-btn {
 	margin: 6px;
 }
+.bin-wrapper {
+	min-width: fit-content;
+	min-height: fit-content;
+}

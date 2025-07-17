@@ -63,10 +63,10 @@ pub fn init_main_ui() -> MainUI {
     let updates_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let updates_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
     let updates_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
-    let gamestate_box: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).valign(gtk::Align::Center).css_classes(["central-box"]).build();
+    let gamestate_box: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).hexpand(true).vexpand(true).spacing(4).valign(gtk::Align::Center).css_classes(["central-box"]).build();
     let center_img: gtk::Image = gtk::Image::new();
-    let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Loading...").css_classes(["launch-btn", "disabled"]).build();
-    let mods_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Mods").css_classes(["mods-btn"]).build();
+    let launch_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Loading...").hexpand(true).halign(gtk::Align::Fill).css_classes(["launch-btn", "disabled"]).build();
+    let mods_btn: gtk::Button = gtk::Button::builder().focusable(false).label("Mods").hexpand(true).css_classes(["mods-btn"]).build();
     let events_grid: gtk::Grid = gtk::Grid::builder().orientation(gtk::Orientation::Horizontal).hexpand(true).vexpand(true).css_classes(["content-grid"]).build();
     let events_next_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["next-btn"]).build();
     let events_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
@@ -81,9 +81,9 @@ pub fn init_main_ui() -> MainUI {
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
 
     // Set hierarchy
-    info_holder.append(&add_clickable_growable_animation_btn(settings_btn.clone()));
-    info_holder.append(&add_clickable_growable_animation_btn(store_btn.clone()));
-    info_holder.append(&add_clickable_growable_animation_btn(tos_btn.clone()));
+    info_holder.append(&add_clickable_growable_animation_btn(settings_btn.clone(), false, false, gtk::Align::Center, gtk::Align::Center));
+    info_holder.append(&add_clickable_growable_animation_btn(store_btn.clone(), false, false, gtk::Align::Center, gtk::Align::Center));
+    info_holder.append(&add_clickable_growable_animation_btn(tos_btn.clone(), false, false, gtk::Align::Center, gtk::Align::Center));
 
     let popover_widget = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["popover-box"]).focusable(false).build();
 
@@ -95,8 +95,8 @@ pub fn init_main_ui() -> MainUI {
     subheader.set_start_widget(Some(&info_holder));
     subheader.set_end_widget(Some(&acc_holder));
 
-    gamestate_box.append(&launch_btn);
-    gamestate_box.append(&mods_btn);
+    gamestate_box.append(&add_clickable_animation_btn(launch_btn.clone(), true, false, gtk::Align::Fill, gtk::Align::Center));
+    gamestate_box.append(&add_clickable_animation_btn(mods_btn.clone(), true, false, gtk::Align::Fill, gtk::Align::Center));
 
     updates_grid.attach(&updates_main_btn, 0, 0, 6, 1);
     updates_grid.attach(&updates_previous_btn, 0, 0, 1, 1);
