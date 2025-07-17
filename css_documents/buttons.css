@@ -1,12 +1,20 @@
 .growable {
-	/*transform: scale(1);*/
+	transform: scale(1);
 }
 .growable:hover {
-	/*transform: scale(1.16);*/
+	transform: scale(1.16);
+}
+.clickable {
+	transform: scale(1);
+	filter: brightness(1);
+}
+.clickable:active {
+	transition-duration: 0.045s;
+	transform: scale(0.96);
+	filter: brightness(0.5);
 }
 .info-btn {
 	transition-duration: 0.18s;
-	filter: brightness(100%);
 	color: white;
 	background: transparent;
 	min-width: 31px;
@@ -15,11 +23,6 @@
 	margin-top: 5px;
 	margin-bottom: 5px;
 	font-family: 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, 'Noto Sans', sans-serif;
-}
-.info-btn:active {
-	transition-duration: 0.05s;
-	transform: scale(1);
-	filter: brightness(50%);
 }
 .next-btn {
 	transition-duration: 0.165s;
@@ -54,12 +57,9 @@
 .launch-btn {
 	font-size: 25px;
 	text-shadow: 0px 0px 10px black;
-	transition-duration: 0.25s;
 	border-radius: 100px;
 	min-height: 60px;
 	margin: 8px;
-	transform: scale(1);
-	filter: brightness(100%);
 }
 .launch-btn.enabled {
 	background: rgba(0, 255, 210, 0.2);
@@ -77,28 +77,16 @@
 .launch-btn.disabled:hover {
 	background: rgba(255, 255, 255, 0.3);
 }
-.launch-btn:active {
-	transition-duration: 0.045s;
-	transform: scale(0.96);
-	filter: brightness(50%);
-}
 .mods-btn {
 	transition-duration: 0.25s;
 	border: 1px solid rgba(0, 255, 210, 0.53);
 	background: rgba(0, 0, 0, 0.2);
 	border-radius: 12px;
-	transform: scale(1);
 	margin-left: 48px;
 	margin-right: 48px;
-	filter: brightness(100%);
 }
 .mods-btn:hover {
 	background: rgba(0, 255, 210, 0.18);
-}
-.mods-btn:active {
-	transition-duration: 0.045s;
-	transform: scale(0.96);
-	filter: brightness(50%);
 }
 .popover-btn {
 	margin: 8px;
