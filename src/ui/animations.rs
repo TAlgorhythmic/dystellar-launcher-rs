@@ -1,9 +1,9 @@
 #[cfg(target_os = "windows")]
-use gtk::{glib::object::ObjectExt, graphene::Point, gsk::Transform, prelude::GestureExt, EventControllerMotion, GestureClick};
+use gtk::{graphene::Point, gsk::Transform, prelude::GestureExt, EventControllerMotion, GestureClick};
 #[cfg(target_os = "windows")]
 use libadwaita::{prelude::AnimationExt, CallbackAnimationTarget, Easing, TimedAnimation};
 
-use gtk::{prelude::WidgetExt, Align, Button};
+use gtk::{prelude::WidgetExt, Button};
 use libadwaita::Bin;
 
 use crate::ui::components::bin_wrap_btn;
@@ -15,13 +15,10 @@ fn growable_anim_callback(param: f64, btn: &Button) {
     let width = allocation.width();
     let height = allocation.height();
 
-    let newwidth = (width as f64 * param).floor() - 2.0;
-    let newheight = (height as f64 * param).floor() - 2.0;
-
     let transform = Transform::new()
-        .scale(param as f32, param as f32)
         .translate(&Point::new(width as f32 / 2.0, height as f32 / 2.0))
-        .translate(&Point::new(-newwidth as f32 / 2.0, -newheight as f32 / 2.0));
+        .scale(param as f32, param as f32)
+        .translate(&Point::new(-width as f32 / 2.0, -height as f32 / 2.0));
 
     btn.allocate(width, height, btn.allocated_baseline(), Some(transform));
 }

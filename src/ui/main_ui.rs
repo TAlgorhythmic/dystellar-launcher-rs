@@ -73,9 +73,9 @@ pub fn init_main_ui() -> MainUI {
     let events_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
     let footer: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["footer"]).build();
     let socials_box: gtk::Box = gtk::Box::builder().css_classes(["info-holder"]).hexpand(false).orientation(gtk::Orientation::Horizontal).build();
-    let d_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_start(18).margin_end(4).css_classes(["info-btn"]).build();
+    let d_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn", "start-hor"]).build();
     let y_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
-    let x_btn: gtk::Button = gtk::Button::builder().focusable(false).margin_end(18).margin_start(4).css_classes(["info-btn"]).build();
+    let x_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn", "end-hor"]).build();
     let dyst_box: gtk::Box = gtk::Box::builder().focusable(false).orientation(gtk::Orientation::Horizontal).css_classes(["info-holder"]).build();
     let dyst_logo: gtk::Image = gtk::Image::builder().build();
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();

@@ -9,6 +9,18 @@
 	transform: scale(1);
 	filter: brightness(1);
 }
+.start-hor {
+	margin-left: 18px;
+}
+.end-hor {
+	margin-right: 18px;
+}
+.start-ver {
+	margin-top: 18px;
+}
+.end-ver {
+	margin-bottom: 18px;
+}
 .clickable:active {
 	transition-duration: 0.045s;
 	transform: scale(0.96);
@@ -21,8 +33,7 @@
 	min-width: 31px;
 	min-height: 31px;
 	transform: scale(1);
-	margin-top: 5px;
-	margin-bottom: 5px;
+	margin: 4px;
 	font-family: 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, 'Noto Sans', sans-serif;
 }
 .next-btn {
