@@ -1,15 +1,17 @@
-headerbar {
-   background-color: #363636;
-}
 button {
    color: white;
    border: none;
 }
 .header {
-   background-color: #363636;
+   background-color: rgba(0, 0, 0, 0.3);
    border: none;
+   border-radius: 20px;
    outline: none;
    box-shadow: none;
+}
+.header image {
+   background: white;
+   color: black;
 }
 .main-content {
    margin: 28px;

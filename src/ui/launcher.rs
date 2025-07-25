@@ -19,8 +19,12 @@ pub fn init(app: &Application) {
 
     let ui = init_main_ui();
     let parent = Box::builder().halign(gtk::Align::Fill).valign(gtk::Align::Fill).orientation(gtk::Orientation::Vertical).build();
+    let header = HeaderBar::builder()
+        .css_classes(["header"])
+        .show_end_title_buttons(true)
+        .build();
 
-    parent.append(&HeaderBar::builder().css_classes(["header"]).build());
+    parent.append(&header);
     parent.append(&ui.main_content);
 
     let window = ApplicationWindow::builder()
