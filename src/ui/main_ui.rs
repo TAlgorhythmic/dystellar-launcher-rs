@@ -1,6 +1,7 @@
 use gtk::prelude::*;
 
-use crate::api::control::http::login;
+use crate::api::control::http::{login, BACKEND_URL};
+use crate::ui::components::open_link_browser;
 use crate::ui::helpers::add_link_controller_button;
 use super::animations::*;
 use crate::utils::img::build_img_from_static_bytes;
@@ -53,7 +54,7 @@ pub fn init_main_ui() -> MainUI {
     let tos_btn: gtk::Button = gtk::Button::builder().label("ToS").focusable(false).css_classes(["info-btn"]).build();
     let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
     let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); // Icon
-    let acc_popover: gtk::Popover = gtk::Popover::builder().has_arrow(false).hexpand(true).vexpand(true).focusable(false).position(gtk::PositionType::Bottom).css_classes(["popover"]).build();
+    let acc_popover: gtk::Popover = gtk::Popover::builder().has_arrow(false).hexpand(true).vexpand(true).overflow(gtk::Overflow::Hidden).focusable(false).position(gtk::PositionType::Bottom).css_classes(["popover"]).build();
     let login_btn: gtk::Button = gtk::Button::builder().label("Log In").focusable(false).css_classes(["popover-btn"]).build();
     let logout_btn: gtk::Button = gtk::Button::builder().label("Log Out").focusable(false).css_classes(["popover-btn"]).build();
     let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
@@ -172,6 +173,10 @@ fn add_events(ui: &MainUI) {
     add_link_controller_button(&ui.d_btn);
     add_link_controller_button(&ui.y_btn);
     add_link_controller_button(&ui.launch_btn);
+
+    ui.x_btn.connect_clicked(|_| open_link_browser(format!("{BACKEND_URL}/x").as_str()));
+    ui.d_btn.connect_clicked(|_| open_link_browser(format!("{BACKEND_URL}/discord").as_str()));
+    ui.y_btn.connect_clicked(|_| open_link_browser(format!("{BACKEND_URL}/youtube").as_str()));
     
     let tmp = ui.acc_popover.clone();
 

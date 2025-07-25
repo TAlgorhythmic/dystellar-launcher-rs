@@ -34,7 +34,7 @@ button {
 	margin: 28px;
 }
 .clicked {
-	filter: brightness(45%);
+	filter: brightness(0.45);
 }
 .window {
 	background-color: #363636;

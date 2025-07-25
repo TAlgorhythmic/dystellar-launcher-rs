@@ -2,6 +2,7 @@ use gtk::ffi::gtk_window_set_focus;
 use gtk::prelude::*;
 use gtk::{Box, Button, Image, Label, Window};
 
+use crate::ui::animations::add_clickable_animation_btn;
 use crate::ui::launcher::APP_INSTANCE;
 
 fn init_dialog(title: &str) -> Window {
@@ -109,8 +110,8 @@ where
         f();
     });
 
-    options.append(&cancelbutton);
-    options.append(&okbutton);
+    options.append(&add_clickable_animation_btn(cancelbutton));
+    options.append(&add_clickable_animation_btn(okbutton.clone()));
 
     child.append(&options);
     window.set_child(Some(&child));

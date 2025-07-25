@@ -41,7 +41,7 @@
 	transition-duration: 0.165s;
 	border-radius: 0px 36px 36px 0px;
 	background: transparent;
-	opacity: 0%;
+	opacity: 0.0;
 }
 .next-btn:hover {
 	background-color: rgba(0, 0, 0, 0.08);
@@ -50,13 +50,13 @@
 	transform: scale(0.92);
 }
 .next-btn.focus {
-	opacity: 100%;
+	opacity: 1.0;
 }
 .previous-btn {
 	transition-duration: 0.165s;
 	border-radius: 36px 0px 0px 36px;
 	background: transparent;
-	opacity: 0%;
+	opacity: 0.0;
 }
 .previous-btn:hover {
 	background-color: rgba(0, 0, 0, 0.08);
@@ -65,7 +65,7 @@
 	transform: scale(0.92);
 }
 .previous-btn.focus {
-	opacity: 100%;
+	opacity: 1.0;
 }
 .launch-btn {
 	font-size: 25px;
@@ -101,7 +101,6 @@
 }
 .popover-btn {
 	margin: 8px;
-	min-height: min-content;
 	background: transparent;
 	background-color: transparent;
 	border-radius: 14px;
@@ -113,4 +112,11 @@
 .popover-btn:active {
 	outline: 1px solid #00A966;
 	background: rgba(255, 255, 255, 0.08);
+}
+.dialog-ok-btn, .dialog-cancel-btn, .dialog-btn {
+	min-width: 100px;
+	min-height: 35px;
+}
+.dialog-ok-btn {
+	background: rgba(0, 255, 60, 0.2);
 }

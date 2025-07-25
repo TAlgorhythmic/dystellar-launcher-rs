@@ -1,8 +1,6 @@
 use std::{error::Error, sync::LazyLock, thread::spawn, time::Duration};
 
 use gtk::glib::MainContext;
-use gtk::prelude::*;
-use gtk::glib::prelude::*;
 use json::{object, stringify, JsonValue};
 use ureq::Agent;
 use webbrowser;
@@ -10,8 +8,9 @@ use uuid::Uuid;
 
 use crate::ui::components::{show_confirmation_dialog, ICON_ERROR};
 
+pub static BACKEND_URL: &str = env!("BACKEND_URL");
+
 static CLIENT_ID: &str = env!("CLIENT_ID");
-static BACKEND_URL: &str = env!("BACKEND_URL");
 static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().timeout_global(Some(Duration::from_secs(6))).build().into());
 
 pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {

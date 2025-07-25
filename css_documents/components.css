@@ -22,11 +22,12 @@
 .popover {
 	transition-duration: 0.25s;
 	margin-top: -8px;
-	opacity: 0%;
+	opacity: 0.0;
+	border-radius: 20px;
 }
 .popover.shown {
 	margin-top: 10px;
-	opacity: 100%;
+	opacity: 1.0;
 }
 .popover contents {
 	background: #2C2C2C;
@@ -44,8 +45,4 @@
 }
 .dialog-icon, .dialog-content, .dialog-btns, .dialog-ok-btn, .dialog-cancel-btn {
 	margin: 6px;
-}
-.bin-wrapper {
-	min-width: fit-content;
-	min-height: fit-content;
 }
