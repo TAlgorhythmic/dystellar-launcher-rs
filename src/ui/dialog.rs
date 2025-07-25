@@ -120,3 +120,38 @@ where
 
     window
 }
+
+pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_label: Option<&str>) -> Window {
+    let window = init_dialog(title);
+    let child = build_child();
+
+    child.append(&build_dialog_content(message, icon));
+
+    let options = Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .vexpand(false)
+        .hexpand(true)
+        .valign(gtk::Align::Center)
+        .halign(gtk::Align::Center)
+        .spacing(20)
+        .css_classes(["dialog-btns"])
+        .build();
+
+    let okbutton = Button::builder().css_classes(["dialog-ok-btn"]).label(ok_btn_label.unwrap_or("Ok")).focusable(true).build();
+
+    let wc = window.clone();
+    let wc2 = window.clone();
+
+
+    okbutton.connect_clicked(move |_| wc2.close());
+
+    options.append(&okbutton);
+
+    child.append(&options);
+    window.set_child(Some(&child));
+
+    APP_INSTANCE.with(|app| window.set_application(Some(app.get().unwrap())));
+    GtkWindowExt::set_focus(&window, Some(&okbutton));
+
+    window
+}
