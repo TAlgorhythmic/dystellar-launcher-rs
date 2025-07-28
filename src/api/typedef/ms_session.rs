@@ -2,6 +2,7 @@ pub struct MicrosoftSession {
     uuid: Box<str>,
     username: Box<str>,
     access_token: Box<str>,
+    refresh_token: Box<str>,
     minecraft_token: Box<str>
 }
 
@@ -16,6 +17,10 @@ impl MicrosoftSession {
 
     pub fn get_access_token(&self) -> &str {
         self.access_token.as_ref()
+    }
+
+    pub fn get_refresh_token(&self) -> &str {
+        self.refresh_token.as_ref()
     }
 
     pub fn get_minecraft_token(&self) -> &str {

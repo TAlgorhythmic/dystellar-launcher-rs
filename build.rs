@@ -7,6 +7,7 @@ fn main() {
 
     let client_id: String;
     let backend_url: String;
+    let crypt_pass = std::env::var("CRYPT_PASS").expect("Failed to get CRYPT_PASS env");
 
     if profile == "release" {
         client_id = std::env::var("PROD_CLIENT_ID").expect("Error getting production client id.");
@@ -18,4 +19,5 @@ fn main() {
 
     println!("cargo:rustc-env=CLIENT_ID={}", client_id);
     println!("cargo:rustc-env=BACKEND_URL={}", backend_url);
+    println!("cargo:rustc-env=CRYPT_PASS={}", crypt_pass);
 }
