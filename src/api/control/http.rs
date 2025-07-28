@@ -6,7 +6,7 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::ui::components::{show_confirmation_dialog, ICON_ERROR};
+use crate::{api::{control::callbacks::exec_safe_gtk, typedef::ms_session::MicrosoftSession}, ui::components::{show_confirmation_dialog, show_dialog, ICON_ERROR}};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -48,7 +48,7 @@ pub fn login() {
 
         if lsopt.is_err() {
             println!("Error connecting to server.");
-            MainContext::default().invoke(|| {
+            exec_safe_gtk(|| {
                 show_confirmation_dialog(
                     "Connection Error",
                     "Error connecting to server, please check your internet connection.",
@@ -63,7 +63,7 @@ pub fn login() {
         
         if !lsession_res["ok"].as_bool().unwrap() {
             // TODO: Server error
-            MainContext::default().invoke(|| {
+            exec_safe_gtk(|| {
                 show_confirmation_dialog(
                     "Server Error",
                     "An unexpected error occured, please try again later. \nSorry for the inconvenience.",
@@ -90,6 +90,25 @@ pub fn login() {
                 let body_res = res.unwrap();
 
                 if body_res["ok"].as_bool().unwrap() {
+                    let uuid_opt = body_res["uuid"].as_str();
+                    let mc_token_opt = body_res["minecraft_token"].as_str();
+                    let access_token_opt = body_res["access_token"].as_str();
+                    let refresh_token_opt = body_res["refresh_token"].as_str();
+
+                    if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
+                        exec_safe_gtk(|| show_dialog("Session Error", "Data received from server is incomplete.\nPlease contact support.", None, ICON_ERROR));
+                        break;
+                    }
+                    let session = MicrosoftSession {
+                        uuid: uuid_opt.unwrap().into(),
+                        username: "TODO".into(),
+                        access_token: access_token_opt.unwrap().into(),
+                        refresh_token: refresh_token_opt.unwrap().into(),
+                        minecraft_token: mc_token_opt.unwrap().into()
+                    };
+                    exec_safe_gtk(|| {
+                        
+                    });
                     println!("Logged in");
                     break;
                 }
