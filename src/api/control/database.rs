@@ -3,7 +3,7 @@ use std::{error::Error, str::from_utf8, sync::LazyLock};
 use magic_crypt::{new_magic_crypt, MagicCrypt256, MagicCryptTrait};
 use sled::{open, Db, Tree};
 
-use crate::api::{control::dir_provider::get_data_dir, typedef::ms_session::MicrosoftSession};
+use crate::api::control::dir_provider::get_data_dir;
 
 static KEY: &str = env!("CRYPT_PASS");
 static CRYPT: LazyLock<MagicCrypt256> = LazyLock::new(|| new_magic_crypt!(KEY, 256));

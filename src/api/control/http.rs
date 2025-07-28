@@ -1,4 +1,4 @@
-use std::{error::Error, sync::LazyLock, thread::spawn, time::Duration};
+use std::{error::Error, sync::LazyLock, time::Duration};
 
 use gtk::glib::MainContext;
 use json::{object, stringify, JsonValue};
@@ -37,7 +37,7 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
 }
 
 pub fn login() {
-    spawn(move || {
+    std::thread::spawn(move || {
         let uuid = Uuid::new_v4();
         let callback = format!("{BACKEND_URL}/api/microsoft/callback");
 
@@ -47,6 +47,7 @@ pub fn login() {
         let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
 
         if lsopt.is_err() {
+            println!("Error connecting to server.");
             MainContext::default().invoke(|| {
                 show_confirmation_dialog(
                     "Connection Error",
@@ -55,7 +56,6 @@ pub fn login() {
                     ICON_ERROR,
                     || login());
             });
-            println!("Error connecting to server.");
             return;
         }
         

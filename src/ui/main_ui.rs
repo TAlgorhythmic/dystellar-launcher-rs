@@ -6,6 +6,7 @@ use crate::ui::helpers::add_link_controller_button;
 use super::animations::*;
 use crate::utils::img::build_img_from_static_bytes;
 
+#[derive(Debug)]
 pub struct MainUI {
     pub main_content: gtk::Box,
     subheader: gtk::CenterBox,
