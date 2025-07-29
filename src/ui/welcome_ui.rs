@@ -5,7 +5,7 @@ use libadwaita::{Application, HeaderBar, Window};
 
 use crate::{api::{control::http::login, typedef::ms_session::MicrosoftSession}, ui::{animations::add_clickable_animation_btn, components::build_dystellar_logo_img, launcher::{present_main_ui, APP_INSTANCE}}, utils::img::build_img_from_static_bytes};
 
-static MS_LOGO: &'static [u8] = include_bytes!("../../assets/icons/microsoft.symbolic.png");
+static MS_LOGO: &'static [u8] = include_bytes!("../../assets/icons/microsoft.png");
 
 thread_local! {
     pub static WINDOW_LOGIN: OnceCell<Window> = OnceCell::new();
