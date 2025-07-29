@@ -36,6 +36,29 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
     Ok(res)
 }
 
+pub fn login_existing(access_token: &str, refresh_token: &str) -> Result<MicrosoftSession, Box<dyn Error + Send + Sync>> {
+    let res = post(format!("{BACKEND_URL}/api/microsoft/login_existing").as_str(), object! {
+        access_token: access_token, refresh_token: refresh_token
+    })?;
+
+    let uuid_opt = res["uuid"].as_str();
+    let mc_token_opt = res["minecraft_token"].as_str();
+    let access_token_opt = res["access_token"].as_str();
+    let refresh_token_opt = res["refresh_token"].as_str();
+
+    if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
+        return Err("Malformed or incomplete data. Please contact support.".into());
+    }
+
+    Ok(MicrosoftSession {
+        uuid: uuid_opt.unwrap().into(),
+        username: "TODO?".into(),
+        access_token: access_token_opt.unwrap().into(),
+        refresh_token: refresh_token_opt.unwrap().into(),
+        minecraft_token: mc_token_opt.unwrap().into()
+    })
+}
+
 pub fn login() {
     std::thread::spawn(move || {
         let uuid = Uuid::new_v4();

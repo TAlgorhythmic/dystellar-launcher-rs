@@ -3,7 +3,7 @@ use std::cell::OnceCell;
 use gtk::{prelude::{BoxExt, ButtonExt, GtkWindowExt, WidgetExt}, Box, Button, Label};
 use libadwaita::{Application, HeaderBar, Window};
 
-use crate::{api::{control::http::login, typedef::ms_session::MicrosoftSession}, ui::{animations::add_clickable_animation_btn, components::build_dystellar_logo_img, launcher::{present_main_ui, APP_INSTANCE}}, utils::img::build_img_from_static_bytes};
+use crate::{api::{control::http::login, typedef::ms_session::MicrosoftSession}, ui::{animations::add_clickable_animation_btn, components::build_inverted_dystellar_logo_img, launcher::{present_main_ui, APP_INSTANCE}}, utils::img::build_img_from_static_bytes};
 
 static MS_LOGO: &'static [u8] = include_bytes!("../../assets/icons/microsoft.png");
 
@@ -30,7 +30,7 @@ fn build_login_btn() -> Button {
     Button::builder()
         .name("signin-microsoft-btn")
         .halign(gtk::Align::Center)
-        .valign(gtk::Align::Start)
+        .valign(gtk::Align::Center)
         .focusable(false)
         .child(&content)
         .build()
@@ -51,7 +51,7 @@ fn build_welcome_content() -> Box {
     let inner_box = Box::builder().vexpand(true).valign(gtk::Align::Center).halign(gtk::Align::Center).orientation(gtk::Orientation::Vertical).spacing(0).build();
     let signin_label = Label::builder().label("Sign in with Microsoft:").name("signin-label").justify(gtk::Justification::Center).wrap(false).halign(gtk::Align::Center).build();
     let signin_btn = build_login_btn();
-    let dyst_logo = build_dystellar_logo_img();
+    let dyst_logo = build_inverted_dystellar_logo_img();
     signin_btn.connect_clicked(|_| login());
     dyst_logo.set_valign(gtk::Align::End);
     dyst_logo.set_halign(gtk::Align::Center);

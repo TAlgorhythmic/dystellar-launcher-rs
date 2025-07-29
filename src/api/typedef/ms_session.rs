@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct MicrosoftSession {
     pub uuid: Box<str>,
     pub username: Box<str>,

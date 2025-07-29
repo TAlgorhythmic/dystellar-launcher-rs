@@ -1,3 +1,15 @@
+.start-hor {
+	margin-left: 18px;
+}
+.end-hor {
+	margin-right: 18px;
+}
+.start-ver {
+	margin-top: 18px;
+}
+.end-ver {
+	margin-bottom: 18px;
+}
 .info-holder {
 	border-radius: 18px;
 	background-color: rgba(0, 0, 0, 0.3);

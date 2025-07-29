@@ -1,6 +1,10 @@
 use crate::api::control::database::retrieve_session;
+use crate::api::control::database::store_session;
+use crate::api::control::http::login_existing;
 use crate::api::typedef::ms_session::MicrosoftSession;
 use crate::css;
+use crate::ui::components::show_dialog;
+use crate::ui::components::ICON_ERROR;
 use crate::ui::main_ui::MainUI;
 use crate::ui::welcome_ui::welcome_login_screen;
 use std::cell::OnceCell;
@@ -57,6 +61,24 @@ pub fn init(app: &Application) {
     if session.is_none() {
         let welcome_screen = welcome_login_screen(&app);
         welcome_screen.present();
+    } else {
+        let (access_token, refresh_token) = session.unwrap();
+
+        let session_opt = login_existing(&access_token, &refresh_token);
+        if let Err(err) = &session_opt {
+            show_dialog("Failed to refresh tokens", format!("An unexpected error occurred when fetching tokens: {}", err.to_string()).as_str(), None, ICON_ERROR);
+            return;
+        }
+        
+        let tokens = session_opt.unwrap();
+        if let Err(err) = store_session(tokens.get_access_token(), tokens.get_refresh_token()) {
+            show_dialog("Failed to save session", format!("An unexpected error occurred when updating database: {} Please contact support.", err.to_string()).as_str(), None, ICON_ERROR);
+            return;
+        }
+
+        SESSION.with(|s| s.set(tokens).expect("Failed to set session"));
+
+        present_main_ui(&app);
     }
 }
 

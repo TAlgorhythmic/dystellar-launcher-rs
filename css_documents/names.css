@@ -14,12 +14,12 @@
 #signin-microsoft-btn {
 	min-height: 76px;
 	min-width: 300px;
-	background: #006450;
+	background: rgba(0, 100, 80, 0.68);
 	border: 2px solid #006F59;
 	border-radius: 26px;
 }
 #signin-microsoft-btn:hover {
-	background: #007760;
+	background: rgba(0, 100, 80, 1.0);
 }
 #signin-microsoft-btn image {
 	margin: 8px;
