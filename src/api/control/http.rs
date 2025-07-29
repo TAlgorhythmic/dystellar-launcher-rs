@@ -6,7 +6,7 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::{control::callbacks::exec_safe_gtk, typedef::ms_session::MicrosoftSession}, ui::components::{show_confirmation_dialog, show_dialog, ICON_ERROR}};
+use crate::{api::{control::callbacks::exec_safe_gtk, typedef::ms_session::MicrosoftSession}, ui::{components::{show_confirmation_dialog, show_dialog, ICON_ERROR}, welcome_ui::login_callback}};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -82,14 +82,19 @@ pub fn login() {
                 let _ = std::thread::sleep(Duration::from_secs(2));
                 let res = get(login_url.as_str());
 
-                if let Err(_) = &res {
-                    // TODO: Error
-                    println!("Error ege");
+                if let Err(err) = &res {
+                    let str_err = err.to_string();
+                    exec_safe_gtk(move || show_dialog("Fatal Error", format!("Failed to check login status: {str_err} \nIs your internet down?").as_str(), None, ICON_ERROR));
+                    break;
                 }
 
                 let body_res = res.unwrap();
 
-                if body_res["ok"].as_bool().unwrap() {
+                if body_res["ok"].as_bool().unwrap_or(false) {
+                    if !body_res["authenticated"].as_bool().unwrap_or(false) {
+                        exec_safe_gtk(|| show_dialog("Microsoft Error", "Failed to get OAuth2 authorization code from Microsoft.", None, ICON_ERROR));
+                        break;
+                    }
                     let uuid_opt = body_res["uuid"].as_str();
                     let mc_token_opt = body_res["minecraft_token"].as_str();
                     let access_token_opt = body_res["access_token"].as_str();
@@ -106,9 +111,8 @@ pub fn login() {
                         refresh_token: refresh_token_opt.unwrap().into(),
                         minecraft_token: mc_token_opt.unwrap().into()
                     };
-                    exec_safe_gtk(|| {
-                        
-                    });
+                    exec_safe_gtk(move || login_callback(session));
+
                     println!("Logged in");
                     break;
                 }

@@ -1,6 +1,8 @@
 use crate::api::control::database::retrieve_session;
+use crate::api::typedef::ms_session::MicrosoftSession;
 use crate::css;
 use crate::ui::main_ui::MainUI;
+use crate::ui::welcome_ui::welcome_login_screen;
 use std::cell::OnceCell;
 
 use crate::ui::main_ui::init_main_ui;
@@ -15,6 +17,7 @@ const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 thread_local! {
     pub static APP_INSTANCE: OnceCell<Application> = OnceCell::new();
     pub static MAIN_UI: OnceCell<MainUI> = OnceCell::new();
+    pub static SESSION: OnceCell<MicrosoftSession> = OnceCell::new();
 }
 
 pub fn present_main_ui(app: &Application) {
@@ -51,6 +54,10 @@ pub fn init(app: &Application) {
     css::inject_css();
 
     let session = retrieve_session().expect("FATAL: Failed to retrieve session, unable to continue");
+    if session.is_none() {
+        let welcome_screen = welcome_login_screen(&app);
+        welcome_screen.present();
+    }
 }
 
 pub fn run() -> glib::ExitCode {

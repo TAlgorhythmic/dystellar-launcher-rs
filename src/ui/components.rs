@@ -3,8 +3,14 @@ use libadwaita::Bin;
 
 use crate::{ui::dialog::{init_confirmation_dialog, init_regular_dialog}, utils::img::build_img_from_static_bytes};
 
+static DYST_LOGO:&'static [u8] = include_bytes!("../../assets/icons/dystlogo.png");
+
 pub static ICON_INFO: &'static [u8] = include_bytes!("./../../assets/icons/info.symbolic.png");
 pub static ICON_ERROR: &'static [u8] = include_bytes!("./../../assets/icons/error.symbolic.png");
+
+pub fn build_dystellar_logo_img() -> Image {
+    build_img_from_static_bytes(DYST_LOGO).expect("Failed to build dystellar logo image")
+}
 
 pub fn show_confirmation_dialog<F>(title: &str, msg: &str, oklabel: Option<&str>, icon: &'static [u8], run: F)
 where 

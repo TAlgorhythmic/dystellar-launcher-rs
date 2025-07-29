@@ -1,0 +1,37 @@
+#welcome-label {
+	margin-top: 24px;
+	font-size: 86px;
+}
+
+#signin-label {
+	min-height: 46px;
+	min-width: 270px;
+	border-radius: 18px;
+	background: rgba(0, 0, 0, 0.35);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#signin-microsoft-btn {
+	min-height: 76px;
+	min-width: 300px;
+	background: #006450;
+	border: 2px solid #006F59;
+	border-radius: 26px;
+}
+#signin-microsoft-btn:hover {
+	background: #007760;
+}
+#signin-microsoft-btn image {
+	margin: 8px;
+	min-height: 65px;
+	min-width: 65px;
+}
+#signin-microsoft-btn label {
+	margin: 8px;
+	font-size: 40px;
+}
+
+#welcome-logo {
+	min-width: 100px;
+	min-height: 100px;
+}
