@@ -37,7 +37,7 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
 }
 
 pub fn login_existing(access_token: &str, refresh_token: &str) -> Result<MicrosoftSession, Box<dyn Error + Send + Sync>> {
-    let res = post(format!("{BACKEND_URL}/api/microsoft/login_existing").as_str(), object! {
+    let res = post(format!("/api/microsoft/login_existing").as_str(), object! {
         access_token: access_token, refresh_token: refresh_token
     })?;
 
@@ -63,8 +63,9 @@ pub fn login() {
     std::thread::spawn(move || {
         let uuid = Uuid::new_v4();
         let callback = format!("{BACKEND_URL}/api/microsoft/callback");
+        println!("Redirect uri: {callback}");
 
-        let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={}&response_type=code&redirect_uri={}&scope=XboxLive.signin%20offline_access&state={}", CLIENT_ID, callback, &uuid);
+        let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={CLIENT_ID}&response_type=code&redirect_uri={callback}&scope=XboxLive.signin%20offline_access&state={uuid}");
 
         let uuid_str = uuid.to_string();
         let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
@@ -115,8 +116,7 @@ pub fn login() {
 
                 if body_res["ok"].as_bool().unwrap_or(false) {
                     if !body_res["authenticated"].as_bool().unwrap_or(false) {
-                        exec_safe_gtk(|| show_dialog("Microsoft Error", "Failed to get OAuth2 authorization code from Microsoft.", None, ICON_ERROR));
-                        break;
+                        continue;
                     }
                     let uuid_opt = body_res["uuid"].as_str();
                     let mc_token_opt = body_res["minecraft_token"].as_str();
