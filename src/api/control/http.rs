@@ -63,7 +63,6 @@ pub fn login() {
     std::thread::spawn(move || {
         let uuid = Uuid::new_v4();
         let callback = format!("{BACKEND_URL}/api/microsoft/callback");
-        println!("Redirect uri: {callback}");
 
         let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={CLIENT_ID}&response_type=code&redirect_uri={callback}&scope=XboxLive.signin%20offline_access&state={uuid}");
 
