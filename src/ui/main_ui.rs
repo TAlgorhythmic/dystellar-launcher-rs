@@ -1,4 +1,4 @@
-use gtk::prelude::*;
+use gtk::{prelude::*, Label};
 
 use crate::api::control::http::{login, BACKEND_URL};
 use crate::ui::components::open_link_browser;
@@ -120,6 +120,7 @@ pub fn init_main_ui() -> MainUI {
     dyst_box.append(&dyst_label);
 
     footer.set_start_widget(Some(&socials_box));
+    footer.set_center_widget(Some(&Label::builder().justify(gtk::Justification::Center).label("Not associated with Mojang or Microsoft").css_classes(["disclaimer-label"]).build()));
     footer.set_end_widget(Some(&dyst_box));
     
     main_content.append(&subheader);

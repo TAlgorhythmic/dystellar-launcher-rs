@@ -1,6 +1,5 @@
 use std::{error::Error, sync::LazyLock, time::Duration};
 
-use gtk::glib::MainContext;
 use json::{object, stringify, JsonValue};
 use ureq::Agent;
 use webbrowser;
@@ -11,7 +10,7 @@ use crate::{api::{control::callbacks::exec_safe_gtk, typedef::ms_session::Micros
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
 static CLIENT_ID: &str = env!("CLIENT_ID");
-static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().timeout_global(Some(Duration::from_secs(6))).build().into());
+static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().http_status_as_error(false).timeout_global(Some(Duration::from_secs(6))).build().into());
 
 pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
     let url = format!("{}{}", BACKEND_URL, path);
@@ -64,7 +63,7 @@ pub fn login() {
         let uuid = Uuid::new_v4();
         let callback = format!("{BACKEND_URL}/api/microsoft/callback");
 
-        let ms_url = format!("https://login.live.com/oauth20_authorize.srf?client_id={CLIENT_ID}&response_type=code&redirect_uri={callback}&scope=XboxLive.signin%20offline_access&state={uuid}");
+        let ms_url = format!("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id={CLIENT_ID}&response_type=code&redirect_uri={callback}&scope=XboxLive.signin%20offline_access&state={uuid}");
 
         let uuid_str = uuid.to_string();
         let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str.clone() });
@@ -112,32 +111,37 @@ pub fn login() {
                 }
 
                 let body_res = res.unwrap();
+                let ok = body_res["ok"].as_bool();
 
-                if body_res["ok"].as_bool().unwrap_or(false) {
-                    if !body_res["authenticated"].as_bool().unwrap_or(false) {
-                        continue;
-                    }
-                    let uuid_opt = body_res["uuid"].as_str();
-                    let mc_token_opt = body_res["minecraft_token"].as_str();
-                    let access_token_opt = body_res["access_token"].as_str();
-                    let refresh_token_opt = body_res["refresh_token"].as_str();
-
-                    if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
-                        exec_safe_gtk(|| show_dialog("Session Error", "Data received from server is incomplete.\nPlease contact support.", None, ICON_ERROR));
-                        break;
-                    }
-                    let session = MicrosoftSession {
-                        uuid: uuid_opt.unwrap().into(),
-                        username: "TODO".into(),
-                        access_token: access_token_opt.unwrap().into(),
-                        refresh_token: refresh_token_opt.unwrap().into(),
-                        minecraft_token: mc_token_opt.unwrap().into()
-                    };
-                    exec_safe_gtk(move || login_callback(session));
-
-                    println!("Logged in");
+                if !ok.unwrap_or(false) {
+                    let body_err_msg: Box<str> = body_res["error"].as_str().unwrap_or("Cannot provide error message").into();
+                    exec_safe_gtk(move || show_dialog("Server Error", format!("Login failed: {}. Please contact support.", body_err_msg).as_str(), None, ICON_ERROR));
                     break;
                 }
+
+                if !body_res["authenticated"].as_bool().unwrap_or(false) {
+                    continue;
+                }
+                let uuid_opt = body_res["uuid"].as_str();
+                let mc_token_opt = body_res["minecraft_token"].as_str();
+                let access_token_opt = body_res["access_token"].as_str();
+                let refresh_token_opt = body_res["refresh_token"].as_str();
+
+                if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
+                    exec_safe_gtk(|| show_dialog("Session Error", "Data received from server is incomplete.\nPlease contact support.", None, ICON_ERROR));
+                    break;
+                }
+                let session = MicrosoftSession {
+                    uuid: uuid_opt.unwrap().into(),
+                    username: "TODO".into(),
+                    access_token: access_token_opt.unwrap().into(),
+                    refresh_token: refresh_token_opt.unwrap().into(),
+                    minecraft_token: mc_token_opt.unwrap().into()
+                };
+                exec_safe_gtk(move || login_callback(session));
+
+                println!("Logged in");
+                break;
             }
         }
     });
