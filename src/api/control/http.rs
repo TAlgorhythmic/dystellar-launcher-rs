@@ -10,7 +10,7 @@ use crate::{api::{control::callbacks::exec_safe_gtk, typedef::ms_session::Micros
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
 static CLIENT_ID: &str = env!("CLIENT_ID");
-static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().http_status_as_error(false).timeout_global(Some(Duration::from_secs(6))).build().into());
+static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().http_status_as_error(false).timeout_global(Some(Duration::from_secs(20))).build().into());
 
 pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
     let url = format!("{}{}", BACKEND_URL, path);
