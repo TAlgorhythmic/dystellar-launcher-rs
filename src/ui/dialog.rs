@@ -1,4 +1,5 @@
-use gtk::ffi::gtk_window_set_focus;
+use std::ops::Deref;
+
 use gtk::prelude::*;
 use gtk::{Box, Button, Image, Label, Window};
 
@@ -116,7 +117,10 @@ where
     child.append(&options);
     window.set_child(Some(&child));
 
-    APP_INSTANCE.with(|app| window.set_application(Some(app.get().unwrap())));
+    APP_INSTANCE.with(|app| {
+        let app_instance = app.take().unwrap();
+        window.set_application(Some(&app_instance));
+    });
     GtkWindowExt::set_focus(&window, Some(&okbutton));
 
     window
@@ -141,17 +145,14 @@ pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_labe
     let okbutton = Button::builder().css_classes(["dialog-ok-btn"]).label(ok_btn_label.unwrap_or("Ok")).focusable(true).build();
 
     let wc = window.clone();
-    let wc2 = window.clone();
+    okbutton.connect_clicked(move |_| wc.close());
 
-
-    okbutton.connect_clicked(move |_| wc2.close());
-
-    options.append(&okbutton);
+    options.append(&add_clickable_animation_btn(okbutton.clone()));
 
     child.append(&options);
     window.set_child(Some(&child));
 
-    APP_INSTANCE.with(|app| window.set_application(Some(app.get().unwrap())));
+    APP_INSTANCE.with(|app| window.set_application(Some(&app.take().unwrap())));
     GtkWindowExt::set_focus(&window, Some(&okbutton));
 
     window

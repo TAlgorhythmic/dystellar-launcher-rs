@@ -1,20 +1,14 @@
-use std::cell::OnceCell;
+use std::cell::RefCell;
 
 use gtk::{prelude::{BoxExt, ButtonExt, GtkWindowExt, WidgetExt}, Box, Button, Label};
-use libadwaita::{Application, HeaderBar, Window};
+use libadwaita::{prelude::AdwWindowExt, Application, HeaderBar, Window};
 
-use crate::{api::{control::http::login, typedef::ms_session::MicrosoftSession}, ui::{animations::add_clickable_animation_btn, components::build_inverted_dystellar_logo_img, launcher::{present_main_ui, APP_INSTANCE}}, utils::img::build_img_from_static_bytes};
+use crate::{api::{control::http::login}, ui::{animations::add_clickable_animation_btn, components::build_inverted_dystellar_logo_img, launcher::{present_main_ui, SESSION}}, utils::img::build_img_from_static_bytes};
 
 static MS_LOGO: &'static [u8] = include_bytes!("../../assets/icons/microsoft.png");
 
 thread_local! {
-    pub static WINDOW_LOGIN: OnceCell<Window> = OnceCell::new();
-}
-
-pub fn login_callback(session: MicrosoftSession) {
-    WINDOW_LOGIN.with(|window| window.get().unwrap().close());
-
-    APP_INSTANCE.with(|app| present_main_ui(app.get().unwrap()));
+    pub static IS_WAITING: RefCell<bool> = RefCell::new(false);
 }
 
 fn build_login_btn() -> Button {
@@ -36,7 +30,7 @@ fn build_login_btn() -> Button {
         .build()
 }
 
-fn build_welcome_content() -> Box {
+fn build_welcome_content(window: Window, app: Application) -> Box {
     let content = Box::builder()
         .css_classes(["main-content"])
         .halign(gtk::Align::Fill)
@@ -52,7 +46,25 @@ fn build_welcome_content() -> Box {
     let signin_label = Label::builder().label("Sign in with Microsoft:").name("signin-label").justify(gtk::Justification::Center).wrap(false).halign(gtk::Align::Center).build();
     let signin_btn = build_login_btn();
     let dyst_logo = build_inverted_dystellar_logo_img();
-    signin_btn.connect_clicked(|_| login());
+    signin_btn.connect_clicked(move |btn| {
+        let is_waiting = IS_WAITING.with(|state| state.take());
+        if is_waiting {
+            return;
+        }
+
+        println!("{is_waiting}");
+
+        let window_cl = window.clone();
+        let app_cl = app.clone();
+
+        btn.add_css_class("disabled");
+        IS_WAITING.with(|state| state.replace(true));
+        login(move |session| {
+            SESSION.set(Some(session));
+            window_cl.close();
+            present_main_ui(&app_cl);
+        });
+    });
     dyst_logo.set_valign(gtk::Align::End);
     dyst_logo.set_halign(gtk::Align::Center);
     dyst_logo.set_widget_name("welcome-logo");
@@ -68,15 +80,7 @@ fn build_welcome_content() -> Box {
 }
 
 pub fn welcome_login_screen(app: &Application) -> Window {
-    let parent = Box::builder().halign(gtk::Align::Fill).valign(gtk::Align::Fill).orientation(gtk::Orientation::Vertical).build();
-    let header = HeaderBar::builder()
-        .css_classes(["header"])
-        .build();
-
-    parent.append(&header);
-    parent.append(&build_welcome_content());
-
-    Window::builder()
+    let window = Window::builder()
         .name("WelcomeScreen")
         .title("Welcome to Dystellar Launcher")
         .default_width(700)
@@ -85,6 +89,17 @@ pub fn welcome_login_screen(app: &Application) -> Window {
         .decorated(false)
         .resizable(false)
         .application(app)
-        .content(&parent)
-        .build()
+        .build();
+
+    let parent = Box::builder().halign(gtk::Align::Fill).valign(gtk::Align::Fill).orientation(gtk::Orientation::Vertical).build();
+    let header = HeaderBar::builder()
+        .css_classes(["header"])
+        .build();
+
+    parent.append(&header);
+    parent.append(&build_welcome_content(window.clone(), app.clone()));
+
+    window.set_content(Some(&parent));
+
+    window
 }

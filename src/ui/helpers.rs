@@ -1,5 +1,5 @@
 use gtk::prelude::*;
-use gtk::{Button, EventControllerMotion, GestureClick};
+use gtk::{Button, EventControllerMotion};
 
 pub fn add_link_controller_button(btn: &Button) {
     let link = EventControllerMotion::new();

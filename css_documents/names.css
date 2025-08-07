@@ -30,6 +30,9 @@
 	margin: 8px;
 	font-size: 40px;
 }
+#signin-microsoft-btn:disabled {
+	background: rgba(0, 0, 0, 0.68);
+}
 
 #welcome-logo {
 	min-width: 100px;

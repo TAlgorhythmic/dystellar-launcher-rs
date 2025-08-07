@@ -17,7 +17,6 @@ pub struct MainUI {
     acc_holder: gtk::Box,
     acc_btn: gtk::Button,
     acc_popover: gtk::Popover,
-    login_btn: gtk::Button,
     logout_btn: gtk::Button,
     switch_acc_btn: gtk::Button,
     help_btn: gtk::Button,
@@ -56,7 +55,6 @@ pub fn init_main_ui() -> MainUI {
     let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
     let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); // Icon
     let acc_popover: gtk::Popover = gtk::Popover::builder().has_arrow(false).hexpand(true).vexpand(true).overflow(gtk::Overflow::Hidden).focusable(false).position(gtk::PositionType::Bottom).css_classes(["popover"]).build();
-    let login_btn: gtk::Button = gtk::Button::builder().label("Log In").focusable(false).css_classes(["popover-btn"]).build();
     let logout_btn: gtk::Button = gtk::Button::builder().label("Log Out").focusable(false).css_classes(["popover-btn"]).build();
     let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
     let help_btn: gtk::Button = gtk::Button::builder().label("Help").focusable(false).css_classes(["popover-btn"]).build();
@@ -89,7 +87,6 @@ pub fn init_main_ui() -> MainUI {
 
     let popover_widget = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["popover-box"]).focusable(false).build();
 
-    popover_widget.append(&login_btn);
     popover_widget.append(&help_btn);
     acc_popover.set_child(Some(&popover_widget));
     acc_popover.set_parent(&acc_btn);
@@ -129,7 +126,7 @@ pub fn init_main_ui() -> MainUI {
     
     let ui = MainUI {
         main_content, subheader, info_holder, settings_btn, store_btn, tos_btn, acc_holder,
-        acc_btn, acc_popover, login_btn, logout_btn, switch_acc_btn, help_btn, central_content,
+        acc_btn, acc_popover, logout_btn, switch_acc_btn, help_btn, central_content,
         updates_grid, updates_next_btn, updates_previous_btn, updates_main_btn, gamestate_box,
         center_img, launch_btn, mods_btn, events_grid, events_next_btn, events_previous_btn,
         events_main_btn, footer, socials_box, d_btn, y_btn, x_btn, dyst_box, dyst_logo, dyst_label
@@ -199,7 +196,6 @@ fn add_events(ui: &MainUI) {
         btn.add_css_class("growable");
     });
 
-    ui.login_btn.connect_clicked(|_| login());
     init_content_grids(ui);
 }
 
