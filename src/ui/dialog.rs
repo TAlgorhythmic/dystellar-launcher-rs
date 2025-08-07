@@ -118,8 +118,11 @@ where
     window.set_child(Some(&child));
 
     APP_INSTANCE.with(|app| {
-        let app_instance = app.take().unwrap();
-        window.set_application(Some(&app_instance));
+        let borrow = app.borrow();
+
+        if let Some(app_instance) = &*borrow {
+            window.set_application(Some(app_instance));
+        }
     });
     GtkWindowExt::set_focus(&window, Some(&okbutton));
 
@@ -152,7 +155,11 @@ pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_labe
     child.append(&options);
     window.set_child(Some(&child));
 
-    APP_INSTANCE.with(|app| window.set_application(Some(&app.take().unwrap())));
+    APP_INSTANCE.with(|app| {
+        if let Some(app_instance) = &*app.borrow() {
+            window.set_application(Some(app_instance));
+        }
+    });
     GtkWindowExt::set_focus(&window, Some(&okbutton));
 
     window

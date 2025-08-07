@@ -8,7 +8,30 @@ use crate::{api::{control::http::login}, ui::{animations::add_clickable_animatio
 static MS_LOGO: &'static [u8] = include_bytes!("../../assets/icons/microsoft.png");
 
 thread_local! {
-    pub static IS_WAITING: RefCell<bool> = RefCell::new(false);
+    static IS_WAITING: RefCell<bool> = RefCell::new(false);
+    static LOGIN_BTN: RefCell<Option<Button>> = RefCell::new(None);
+}
+
+pub fn lock_login_btn() {
+    LOGIN_BTN.with(|btn| {
+        let opt = btn.borrow();
+
+        if let Some(button) = &*opt {
+            button.add_css_class("locked");
+            IS_WAITING.replace(true);
+        }
+    });
+}
+
+pub fn unlock_login_btn() {
+    LOGIN_BTN.with(|btn| {
+        let opt = btn.borrow();
+
+        if let Some(button) = &*opt {
+            button.remove_css_class("locked");
+            IS_WAITING.replace(false);
+        }
+    });
 }
 
 fn build_login_btn() -> Button {
@@ -46,25 +69,23 @@ fn build_welcome_content(window: Window, app: Application) -> Box {
     let signin_label = Label::builder().label("Sign in with Microsoft:").name("signin-label").justify(gtk::Justification::Center).wrap(false).halign(gtk::Align::Center).build();
     let signin_btn = build_login_btn();
     let dyst_logo = build_inverted_dystellar_logo_img();
-    signin_btn.connect_clicked(move |btn| {
-        let is_waiting = IS_WAITING.with(|state| state.take());
-        if is_waiting {
+
+    LOGIN_BTN.replace(Some(signin_btn.clone()));
+    signin_btn.connect_clicked(move |_| {
+        if IS_WAITING.with_borrow(|var| *var) {
             return;
         }
-
-        println!("{is_waiting}");
 
         let window_cl = window.clone();
         let app_cl = app.clone();
 
-        btn.add_css_class("disabled");
-        IS_WAITING.with(|state| state.replace(true));
         login(move |session| {
             SESSION.set(Some(session));
             window_cl.close();
             present_main_ui(&app_cl);
         });
     });
+
     dyst_logo.set_valign(gtk::Align::End);
     dyst_logo.set_halign(gtk::Align::Center);
     dyst_logo.set_widget_name("welcome-logo");

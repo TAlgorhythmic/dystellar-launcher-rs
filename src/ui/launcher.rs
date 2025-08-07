@@ -76,7 +76,7 @@ pub fn init(app: &Application) {
 
 pub fn run() -> glib::ExitCode {
     let app = Application::builder().application_id(APP_ID).build();
-    APP_INSTANCE.with(|cell| cell.replace(Some(app.clone())));
+    APP_INSTANCE.replace(Some(app.clone()));
     app.connect_activate(init);
     
     app.run()

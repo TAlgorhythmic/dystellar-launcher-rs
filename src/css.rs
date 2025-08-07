@@ -16,5 +16,4 @@ pub fn inject_css() {
         &provider,
         gtk::STYLE_PROVIDER_PRIORITY_USER
     );
-
 }
