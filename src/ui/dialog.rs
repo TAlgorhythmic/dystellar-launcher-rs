@@ -1,19 +1,14 @@
-use std::ops::Deref;
-
-use gtk::prelude::*;
 use gtk::{Box, Button, Image, Label, Window};
+use libadwaita::{prelude::*, Dialog};
 
 use crate::ui::animations::add_clickable_animation_btn;
 use crate::ui::launcher::APP_INSTANCE;
 
-fn init_dialog(title: &str) -> Window {
-    Window::builder()
+fn init_dialog(title: &str) -> Dialog {
+    Dialog::builder()
         .title(title)
-        .default_width(600)
         .css_classes(["dialog"])
-        .resizable(false)
-        .name(title)
-        .modal(true)
+        .presentation_mode(libadwaita::DialogPresentationMode::Floating)
         .halign(gtk::Align::Fill)
         .valign(gtk::Align::Center)
         .hexpand(true)
@@ -79,11 +74,11 @@ fn build_dialog_content(msg: &str, icon: &Image) -> Box {
     res
 }
 
-pub fn init_confirmation_dialog<F>(title: &str, message: &str, icon: &Image, f: F, ok_btn_label: Option<&str>) -> Window
+pub fn init_confirmation_dialog<F>(title: &str, message: &str, icon: &Image, f: F, ok_btn_label: Option<&str>) -> Dialog
 where
     F: Fn() -> () + 'static
 {
-    let window = init_dialog(title);
+    let dialog = init_dialog(title);
     let child = build_child();
 
     child.append(&build_dialog_content(message, icon));
@@ -101,10 +96,10 @@ where
     let okbutton = Button::builder().css_classes(["dialog-ok-btn"]).label(ok_btn_label.unwrap_or("Proceed")).focusable(true).build();
     let cancelbutton = Button::builder().css_classes(["dialog-cancel-btn"]).label("Cancel").build();
 
-    let wc = window.clone();
-    let wc2 = window.clone();
+    let wc = dialog.clone();
+    let wc2 = dialog.clone();
 
-    cancelbutton.connect_clicked(move |_| wc.close());
+    cancelbutton.connect_clicked(move |_| { wc.close(); });
 
     okbutton.connect_clicked(move |_| {
         wc2.close();
@@ -115,22 +110,15 @@ where
     options.append(&add_clickable_animation_btn(okbutton.clone()));
 
     child.append(&options);
-    window.set_child(Some(&child));
+    dialog.set_child(Some(&child));
 
-    APP_INSTANCE.with(|app| {
-        let borrow = app.borrow();
+    dialog.set_focus(Some(&okbutton));
 
-        if let Some(app_instance) = &*borrow {
-            window.set_application(Some(app_instance));
-        }
-    });
-    GtkWindowExt::set_focus(&window, Some(&okbutton));
-
-    window
+    dialog
 }
 
-pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_label: Option<&str>) -> Window {
-    let window = init_dialog(title);
+pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_label: Option<&str>) -> Dialog {
+    let dialog = init_dialog(title);
     let child = build_child();
 
     child.append(&build_dialog_content(message, icon));
@@ -147,20 +135,14 @@ pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_labe
 
     let okbutton = Button::builder().css_classes(["dialog-ok-btn"]).label(ok_btn_label.unwrap_or("Ok")).focusable(true).build();
 
-    let wc = window.clone();
-    okbutton.connect_clicked(move |_| wc.close());
+    let wc = dialog.clone();
+    okbutton.connect_clicked(move |_| { wc.close(); });
 
     options.append(&add_clickable_animation_btn(okbutton.clone()));
 
     child.append(&options);
-    window.set_child(Some(&child));
+    dialog.set_child(Some(&child));
+    dialog.set_focus(Some(&okbutton));
 
-    APP_INSTANCE.with(|app| {
-        if let Some(app_instance) = &*app.borrow() {
-            window.set_application(Some(app_instance));
-        }
-    });
-    GtkWindowExt::set_focus(&window, Some(&okbutton));
-
-    window
+    dialog
 }

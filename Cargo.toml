@@ -20,5 +20,5 @@ ureq = { version = "3.0.11", default-features = false, features = ["native-tls",
 sled = "0.34.7"
 directories = "6.0.0"
 chrono = "0.4.41"
-libadwaita = "0.7.2"
+libadwaita = { package = "libadwaita", version = "0.7.2", features = ["v1_5"] }
 magic-crypt = "4.0.1"

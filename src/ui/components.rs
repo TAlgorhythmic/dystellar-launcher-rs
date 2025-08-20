@@ -1,4 +1,5 @@
-use gtk::{prelude::{GtkWindowExt, WidgetExt}, Button, Image};
+use libadwaita::{prelude::AdwDialogExt};
+use gtk::{prelude::WidgetExt, Button, Image};
 use libadwaita::Bin;
 
 use crate::{ui::dialog::{init_confirmation_dialog, init_regular_dialog}, utils::img::build_img_from_static_bytes};
@@ -24,14 +25,14 @@ where
     let icon = build_img_from_static_bytes(icon).unwrap_or(Image::new());
     let dialog = init_confirmation_dialog(title, msg, &icon, run, oklabel);
 
-    dialog.present();
+    dialog.present(None::<&gtk::Box>);
 }
 
 pub fn show_dialog(title: &str, msg: &str, oklabel: Option<&str>, icon: &'static [u8]) {
     let icon = build_img_from_static_bytes(icon).unwrap_or(Image::new());
     let dialog = init_regular_dialog(title, msg, &icon, oklabel);
 
-    dialog.present();
+    dialog.present(None::<&gtk::Box>);
 }
 
 pub fn bin_wrap_btn(btn: Button) -> Bin {
