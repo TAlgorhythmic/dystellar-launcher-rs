@@ -1,8 +1,7 @@
-use gtk::{Box, Button, Image, Label, Window};
-use libadwaita::{prelude::*, Dialog};
+use gtk::{Box, Button, Image, Label};
+use libadwaita::{prelude::*, Dialog, HeaderBar};
 
 use crate::ui::animations::add_clickable_animation_btn;
-use crate::ui::launcher::APP_INSTANCE;
 
 fn init_dialog(title: &str) -> Dialog {
     Dialog::builder()
@@ -11,6 +10,7 @@ fn init_dialog(title: &str) -> Dialog {
         .presentation_mode(libadwaita::DialogPresentationMode::Floating)
         .halign(gtk::Align::Fill)
         .valign(gtk::Align::Center)
+        .overflow(gtk::Overflow::Hidden)
         .hexpand(true)
         .vexpand(true)
         .visible(true)
@@ -80,7 +80,12 @@ where
 {
     let dialog = init_dialog(title);
     let child = build_child();
+    let header = HeaderBar::builder()
+        .css_classes(["header"])
+        .show_end_title_buttons(true)
+        .build();
 
+    child.append(&header);
     child.append(&build_dialog_content(message, icon));
 
     let options = Box::builder()
@@ -120,7 +125,12 @@ where
 pub fn init_regular_dialog(title: &str, message: &str, icon: &Image, ok_btn_label: Option<&str>) -> Dialog {
     let dialog = init_dialog(title);
     let child = build_child();
+    let header = HeaderBar::builder()
+        .css_classes(["header"])
+        .show_end_title_buttons(true)
+        .build();
 
+    child.append(&header);
     child.append(&build_dialog_content(message, icon));
 
     let options = Box::builder()

@@ -1,59 +1,66 @@
 use gtk::{prelude::*, Label};
+use libadwaita::prelude::BinExt;
 
-use crate::api::control::http::{login, BACKEND_URL};
+use crate::api::control::http::BACKEND_URL;
+use crate::ui::animations::{add_clickable_animation_btn, add_clickable_growable_animation_btn};
 use crate::ui::components::open_link_browser;
 use crate::ui::helpers::add_link_controller_button;
-use super::animations::*;
 use crate::utils::img::build_img_from_static_bytes;
+
+fn hbox(classes: &[&str]) -> gtk::Box {
+    gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(classes).build()
+}
+
+fn vbox(classes: &[&str]) -> gtk::Box {
+    gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).css_classes(classes).build()
+}
 
 #[derive(Debug)]
 pub struct MainUI {
     pub main_content: gtk::Box,
-    subheader: gtk::CenterBox,
-    info_holder: gtk::Box,
-    settings_btn: gtk::Button,
-    store_btn: gtk::Button,
-    tos_btn: gtk::Button,
-    acc_holder: gtk::Box,
-    acc_btn: gtk::Button,
-    acc_popover: gtk::Popover,
-    logout_btn: gtk::Button,
-    switch_acc_btn: gtk::Button,
-    help_btn: gtk::Button,
-    central_content: gtk::Grid,
-    updates_grid: gtk::Grid,
-    updates_next_btn: gtk::Button,
-    updates_previous_btn: gtk::Button,
-    updates_main_btn: gtk::Button,
-    gamestate_box: gtk::Box,
-    center_img: gtk::Image,
-    launch_btn: gtk::Button,
-    mods_btn: gtk::Button,
-    events_grid: gtk::Grid,
-    events_next_btn: gtk::Button,
-    events_previous_btn: gtk::Button,
-    events_main_btn: gtk::Button,
-    footer: gtk::CenterBox,
-    socials_box: gtk::Box,
-    d_btn: gtk::Button,
-    y_btn: gtk::Button,
-    x_btn: gtk::Button,
-    dyst_box: gtk::Box,
-    dyst_logo: gtk::Image,
-    dyst_label: gtk::Label
+    pub subheader: gtk::CenterBox,
+    pub info_holder: gtk::Box,
+    pub settings_btn: gtk::Button,
+    pub store_btn: gtk::Button,
+    pub tos_btn: gtk::Button,
+    pub acc_holder: gtk::Box,
+    pub acc_btn: libadwaita::Bin,
+    pub acc_popover: gtk::Popover,
+    pub logout_btn: gtk::Button,
+    pub switch_acc_btn: gtk::Button,
+    pub help_btn: gtk::Button,
+    pub central_content: gtk::Grid,
+    pub updates_grid: gtk::Grid,
+    pub updates_next_btn: gtk::Button,
+    pub updates_previous_btn: gtk::Button,
+    pub updates_main_btn: gtk::Button,
+    pub gamestate_box: gtk::Box,
+    pub center_img: gtk::Image,
+    pub launch_btn: gtk::Button,
+    pub mods_btn: gtk::Button,
+    pub events_grid: gtk::Grid,
+    pub events_next_btn: gtk::Button,
+    pub events_previous_btn: gtk::Button,
+    pub events_main_btn: gtk::Button,
+    pub footer: gtk::CenterBox,
+    pub socials_box: gtk::Box,
+    pub d_btn: gtk::Button,
+    pub y_btn: gtk::Button,
+    pub x_btn: gtk::Button,
+    pub dyst_box: gtk::Box,
+    pub dyst_logo: gtk::Image,
+    pub dyst_label: gtk::Label
 }
-
-impl MainUI {}
 
 pub fn init_main_ui() -> MainUI {
     let main_content: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["main-content"]).vexpand(true).hexpand(true).valign(gtk::Align::Fill).halign(gtk::Align::Fill).build();
     let subheader: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["subheader"]).build();
-    let info_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
+    let info_holder: gtk::Box = hbox(&["info-holder"]);
     let settings_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
     let store_btn: gtk::Button = gtk::Button::builder().label("Store").focusable(false).css_classes(["info-btn"]).build();
     let tos_btn: gtk::Button = gtk::Button::builder().label("ToS").focusable(false).css_classes(["info-btn"]).build();
-    let acc_holder: gtk::Box = gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(2).css_classes(["info-holder"]).build();
-    let acc_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build(); // Icon
+    let acc_holder: gtk::Box = hbox(&["info-holder"]);
+    let acc_btn: libadwaita::Bin = libadwaita::Bin::builder().focusable(false).css_classes(["info-btn"]).build();
     let acc_popover: gtk::Popover = gtk::Popover::builder().has_arrow(false).hexpand(true).vexpand(true).overflow(gtk::Overflow::Hidden).focusable(false).position(gtk::PositionType::Bottom).css_classes(["popover"]).build();
     let logout_btn: gtk::Button = gtk::Button::builder().label("Log Out").focusable(false).css_classes(["popover-btn"]).build();
     let switch_acc_btn: gtk::Button = gtk::Button::builder().label("Switch Account").focusable(false).css_classes(["popover-btn"]).build();
@@ -72,11 +79,11 @@ pub fn init_main_ui() -> MainUI {
     let events_previous_btn: gtk::Button = gtk::Button::builder().focusable(false).vexpand(true).css_classes(["previous-btn"]).build();
     let events_main_btn: gtk::Button = gtk::Button::builder().overflow(gtk::Overflow::Hidden).focusable(false).vexpand(true).hexpand(true).css_classes(["web-content"]).build();
     let footer: gtk::CenterBox = gtk::CenterBox::builder().orientation(gtk::Orientation::Horizontal).css_classes(["footer"]).build();
-    let socials_box: gtk::Box = gtk::Box::builder().css_classes(["info-holder"]).hexpand(false).orientation(gtk::Orientation::Horizontal).build();
+    let socials_box: gtk::Box = hbox(&["info-holder"]);
     let d_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn", "start-hor"]).build();
     let y_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn"]).build();
     let x_btn: gtk::Button = gtk::Button::builder().focusable(false).css_classes(["info-btn", "end-hor"]).build();
-    let dyst_box: gtk::Box = gtk::Box::builder().focusable(false).orientation(gtk::Orientation::Horizontal).css_classes(["info-holder"]).build();
+    let dyst_box: gtk::Box = hbox(&["info-holder"]);
     let dyst_logo: gtk::Image = gtk::Image::builder().build();
     let dyst_label: gtk::Label = gtk::Label::builder().css_classes(["label"]).label("Dystellar Network").build();
 
@@ -90,7 +97,7 @@ pub fn init_main_ui() -> MainUI {
     popover_widget.append(&help_btn);
     acc_popover.set_child(Some(&popover_widget));
     acc_popover.set_parent(&acc_btn);
-    acc_holder.append(&add_growable_animation_btn(acc_btn.clone()));
+    acc_holder.append(&acc_btn);
     subheader.set_start_widget(Some(&info_holder));
     subheader.set_end_widget(Some(&acc_holder));
 
@@ -117,7 +124,7 @@ pub fn init_main_ui() -> MainUI {
     dyst_box.append(&dyst_label);
 
     footer.set_start_widget(Some(&socials_box));
-    footer.set_center_widget(Some(&Label::builder().justify(gtk::Justification::Center).label("Not associated with Mojang or Microsoft").css_classes(["disclaimer-label"]).build()));
+    footer.set_center_widget(Some(&Label::builder().justify(gtk::Justification::Center).label("Not associated with Mojang or Microsoft").css_classes(["disclaimer-label"]).opacity(0.28).build()));
     footer.set_end_widget(Some(&dyst_box));
     
     main_content.append(&subheader);

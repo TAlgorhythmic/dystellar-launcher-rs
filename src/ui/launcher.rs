@@ -1,4 +1,4 @@
-use crate::api::control::{database::{retrieve_session, store_session}, http::login_existing};
+use crate::{api::control::{database::{retrieve_session, store_session}, http::login_existing}, ui::main_ui::MainUI};
 use crate::api::typedef::ms_session::MicrosoftSession;
 use crate::css;
 use crate::ui::components::{show_dialog, ICON_ERROR};
@@ -6,20 +6,15 @@ use crate::ui::main_ui::init_main_ui;
 use crate::ui::welcome_ui::welcome_login_screen;
 use std::cell::RefCell;
 
-use gtk::prelude::*;
-use gtk::glib;
-use gtk::Box;
-use libadwaita::HeaderBar;
-use libadwaita::{Application, ApplicationWindow};
-
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 
+slint::include_modules!();
+
 thread_local! {
-    pub static APP_INSTANCE: RefCell<Option<Application>> = RefCell::new(None);
     pub static SESSION: RefCell<Option<MicrosoftSession>> = RefCell::new(None);
 }
 
-pub fn present_main_ui(app: &Application) {
+pub fn present_main_ui(app: &Application) -> MainUI {
     let ui = init_main_ui();
 
     let parent = Box::builder().halign(gtk::Align::Fill).valign(gtk::Align::Fill).orientation(gtk::Orientation::Vertical).build();
@@ -43,6 +38,8 @@ pub fn present_main_ui(app: &Application) {
         .build();
 
     window.present();
+
+    ui
 }
 
 pub fn init(app: &Application) {
@@ -55,6 +52,7 @@ pub fn init(app: &Application) {
         welcome_screen.present();
     } else {
         let (access_token, refresh_token) = session.unwrap();
+        let ui = present_main_ui(&app);
 
         let session_opt = login_existing(&access_token, &refresh_token);
         if let Err(err) = &session_opt {
@@ -70,7 +68,6 @@ pub fn init(app: &Application) {
 
         SESSION.with(|s| s.replace(Some(tokens)));
 
-        present_main_ui(&app);
     }
 }
 

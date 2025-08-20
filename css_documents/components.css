@@ -48,8 +48,12 @@
 	min-width: 150px;
 }
 .dialog {
+	background: rgba(0, 0, 0, 0);
 	background-color: #363636;
-	background: #363636;
+	border-radius: 10px;
+}
+.dialog .header {
+	border-radius: 10px;
 }
 .dialog-icon {
 	min-height: 120px;
