@@ -1,6 +1,33 @@
 import { Infoholder } from "infoholder.slint";
+import { ButtonGrowable } from "button_growable.slint";
+import { IconImage } from "icon_image.slint";
+
 export component Socials {
+	callback on_click_discord;
+	callback on_click_youtube;
+	callback on_click_x;
+
     Infoholder {
-		
+		ButtonGrowable {
+			on_click => { on_click_discord(); }
+
+			IconImage {
+				source: @image-url("assets/discord.svg");
+			}
+		}
+		ButtonGrowable {
+			on_click => { on_click_youtube(); }
+
+			IconImage {
+				source: @image-url("assets/youtube.svg");
+			}
+		}
+		ButtonGrowable {
+			on_click => { on_click_x(); }
+
+			IconImage {
+				source: @image-url("assets/discord.svg");
+			}
+		}
 	}
 }
