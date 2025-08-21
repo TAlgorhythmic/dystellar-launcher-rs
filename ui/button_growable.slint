@@ -1,0 +1,26 @@
+export component ButtonGrowable {
+	width: 32px;
+	height: 32px;
+
+	callback on_click;
+
+    Rectangle {
+		background: rgba(0, 0, 0, 0);
+		border-width: 0px;
+		clip: false;
+
+		area := TouchArea {
+			clicked => { on_click(); }
+		}
+
+		animate width { duration: area.pressed ? 60ms : 250ms; easing: ease-in-out; }
+		animate height { duration: area.pressed ? 60ms : 250ms; easing: ease-in-out; }
+		animate opacity { duration: area.pressed ? 60ms : 250ms; easing: ease-in-out; }
+
+		width: area.pressed ? 30px : area.has-hover ? 36px : 32px;
+		height: area.pressed ? 30px : area.has-hover ? 36px : 32px;
+		opacity: area.pressed ? 0.6 : 1.0;
+
+		@children
+	}
+}
