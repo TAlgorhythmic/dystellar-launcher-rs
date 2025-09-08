@@ -1,7 +1,24 @@
+import { Infoholder } from "infoholder.slint";
+import { ButtonGrowable } from "button_growable.slint";
+import { IconImage } from "icon_image.slint";
+
 export component Subheader {
 	HorizontalLayout {
+		Infoholder {
+			ButtonGrowable {
+				IconImage {
+					source: @image-url("assets/icons/settings.svg");
+					image-fit: contain;
+				}
+			}
+		}
+
 		Rectangle {
 			horizontal-stretch: 1.0;
+		}
+		
+		Infoholder {
+			
 		}
 	}
 }

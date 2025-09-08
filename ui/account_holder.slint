@@ -1,0 +1,9 @@
+import { Spinner } from "std-widgets.slint";
+export component AccountHolder {
+    property <bool> is_loaded;
+	property <image> source;
+
+	if (!is_loaded) : Spinner {
+
+	}
+}

@@ -1,0 +1,10 @@
+export component CleanSpinner inherits Image {
+	source: @image-url("assets/spinner.svg");
+	rotation-angle: 0deg;
+
+	animate rotation-angle {
+		duration: 1500ms;
+		iteration-count: -1;
+		easing: linear;
+	}
+}

@@ -63,7 +63,6 @@ unsafe impl Sync for LoadableContainer {}
 impl LoadableContainer {
     pub fn new(bin: Bin) -> Self {
         let spinner = Spinner::builder().halign(gtk::Align::Fill).valign(gtk::Align::Fill).build();
-
         bin.set_child(Some(&spinner));
         spinner.start();
         Self { container: bin, spinner }
