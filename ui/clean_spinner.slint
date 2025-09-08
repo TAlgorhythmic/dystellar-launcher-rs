@@ -1,10 +1,16 @@
-export component CleanSpinner inherits Image {
-	source: @image-url("assets/spinner.svg");
-	rotation-angle: 0deg;
+export component CleanSpinner inherits Rectangle {
+	width: min(self.width, self.height);
+	height: min(self.width, self.height);
+	border-radius: 100000px;
+	border-width: 1px;
+	border-color: rgba(255, 255, 255, 0.4);
+	drop-shadow-blur: 2px;
 
-	animate rotation-angle {
-		duration: 1500ms;
-		iteration-count: -1;
-		easing: linear;
+	Rectangle {
+		width: root.width - 1px;
+		height: root.height - 1px;
+		border-radius: 1000000px;
+		border-width: 1px;
+		border-color: rgba(255, 255, 255, 0.1);
 	}
 }
