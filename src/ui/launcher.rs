@@ -8,7 +8,6 @@ use std::cell::RefCell;
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
 
-slint::include_modules!();
 
 thread_local! {
     pub static SESSION: RefCell<Option<MicrosoftSession>> = RefCell::new(None);
@@ -73,8 +72,4 @@ pub fn init(app: &Application) {
 
 pub fn run() -> glib::ExitCode {
     let app = Application::builder().application_id(APP_ID).build();
-    APP_INSTANCE.replace(Some(app.clone()));
-    app.connect_activate(init);
-    
-    app.run()
 }

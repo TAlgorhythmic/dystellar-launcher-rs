@@ -9,6 +9,7 @@ name = "dystellar-launcher"
 path = "src/main.rs"
 
 [build-dependencies]
+slint-build = "1.13"
 dotenv = "0.15.0"
 
 [dependencies]
@@ -20,4 +21,4 @@ sled = "0.34.7"
 directories = "6.0.0"
 chrono = "0.4.41"
 magic-crypt = "4.0.1"
-slint = { version = "1.12.1", default-features = false, features = ["compat-1-2", "std", "log", "accessibility", "raw-window-handle-06", "backend-winit", "renderer-skia-vulkan", "renderer-skia-opengl"] }
+slint = { version = "1.13", default-features = false, features = ["compat-1-2", "std", "log", "accessibility", "raw-window-handle-06", "backend-winit", "renderer-skia-vulkan", "renderer-skia-opengl"] }

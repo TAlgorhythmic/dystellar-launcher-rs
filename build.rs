@@ -20,4 +20,6 @@ fn main() {
     println!("cargo:rustc-env=CLIENT_ID={}", client_id);
     println!("cargo:rustc-env=BACKEND_URL={}", backend_url);
     println!("cargo:rustc-env=CRYPT_PASS={}", crypt_pass);
+
+    slint_build::compile("ui/main.slint").unwrap();
 }
