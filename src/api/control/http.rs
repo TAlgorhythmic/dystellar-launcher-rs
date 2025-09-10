@@ -1,12 +1,11 @@
 use std::{error::Error, sync::LazyLock, time::Duration};
 
-use gtk::glib::{self, timeout_add_local_full, ControlFlow, Priority};
 use json::{object, stringify, JsonValue};
 use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::{control::{callbacks::exec_safe_gtk, database::store_session}, typedef::ms_session::MicrosoftSession}, ui::{components::{show_dialog, ICON_ERROR}, welcome_ui::{lock_login_btn, unlock_login_btn}}};
+use crate::{api::{control::database::store_session, typedef::ms_session::MicrosoftSession}};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -69,7 +68,6 @@ where
 
     if let Err(err) = webbrowser::open(&ms_url) {
         show_dialog("System Error", format!("Failed to open browser: {}", err.to_string()).as_str(), None, ICON_ERROR);
-        unlock_login_btn();
         return;
     }
 
@@ -93,7 +91,6 @@ where
         if !ok.unwrap_or(false) {
             let body_err_msg: Box<str> = body_res["error"].as_str().unwrap_or("Cannot provide error message").into();
             exec_safe_gtk(move || show_dialog("Server Error", format!("Login failed: {}. Please contact support.", body_err_msg).as_str(), None, ICON_ERROR));
-            unlock_login_btn();
             return glib::ControlFlow::Break;
         }
 
@@ -107,7 +104,6 @@ where
 
         if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
             exec_safe_gtk(|| show_dialog("Session Error", "Data received from server is incomplete.\nPlease contact support.", None, ICON_ERROR));
-            unlock_login_btn();
             return ControlFlow::Break;
         }
         let session = MicrosoftSession {
@@ -124,8 +120,6 @@ where
         callback(session);
 
         println!("Logged in");
-        unlock_login_btn();
-        glib::ControlFlow::Break
     });
 }
 
@@ -133,8 +127,6 @@ pub fn login<F>(callback: F)
 where
     F: Fn(MicrosoftSession) + 'static
 {
-
-    lock_login_btn();
     let uuid = Uuid::new_v4();
 
     let uuid_str = uuid.to_string();
@@ -147,7 +139,6 @@ where
             Some("Try Again"),
             ICON_ERROR
         );
-        unlock_login_btn();
         return;
     }
 
@@ -159,7 +150,6 @@ where
             Some("Try Again"),
             ICON_ERROR
         );
-        unlock_login_btn();
         return;
     }
 
