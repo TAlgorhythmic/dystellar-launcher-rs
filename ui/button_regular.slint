@@ -1,9 +1,9 @@
 export component ButtonRegular inherits Rectangle {
 	callback on_click;
 
-	in property <bool> primary: false;
-	in property <length> initial-width: 100px;
-	in property <length> initial-height: 30px;
+	in-out property <bool> primary: false;
+	in-out property <length> initial-width: 100px;
+	in-out property <length> initial-height: 30px;
 
 	background: area.has-hover ? (primary ? #007965 : #989898) : (primary ? #006857 : #848484);
 	border-width: 1px;
