@@ -1,0 +1,11 @@
+export enum DialogSeverity { info, warning, error }
+
+export enum DialogType { basic, confirmation }
+
+export struct DialogData {
+	shown: bool,
+	type: DialogType,
+	severity: DialogSeverity,
+	title: string,
+	content: string
+}

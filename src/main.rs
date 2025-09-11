@@ -2,7 +2,7 @@
 
 mod ui;
 mod api;
-mod utils;
+mod logic;
 
 fn main() {
     ui::launcher::run();

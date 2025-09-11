@@ -1,6 +1,8 @@
+use crate::api::control::database::store_session;
+use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Weak};
 
-use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}, ui::components::open_link_browser};
+use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
 use std::{cell::RefCell, error::Error};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
