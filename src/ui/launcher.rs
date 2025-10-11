@@ -1,4 +1,6 @@
-use crate::api::control::database::store_session;
+use crate::generated::{Callbacks, Main};
+use crate::logic::{open_discord, open_youtube};
+use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Weak};
 
@@ -6,8 +8,6 @@ use crate::{api::{control::database::retrieve_session, typedef::ms_session::Micr
 use std::{cell::RefCell, error::Error};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
-
-slint::include_modules!();
 
 thread_local! {
     pub static SESSION: RefCell<Option<MicrosoftSession>> = RefCell::new(None);
@@ -17,7 +17,9 @@ fn setup_callbacks(ui: Weak<Main>) {
     let ui = ui.upgrade().unwrap();
     let callbacks = ui.global::<Callbacks>();
 
-    callbacks.on_click_x(|| open_link_browser("asda"));
+    callbacks.on_click_x(|| open_x(&ui));
+    callbacks.on_click_discord(|| open_discord(&ui));
+    callbacks.on_click_youtube(|| open_youtube(&ui));
 }
 
 pub fn present_main_ui() -> Result<Main, slint::PlatformError> {

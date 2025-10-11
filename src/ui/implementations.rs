@@ -1,10 +1,6 @@
-use std::{error::Error, sync::{atomic::AtomicUsize, mpsc::{self, channel, Receiver, Sender}, LazyLock}, thread};
+use std::{error::Error, sync::{atomic::AtomicUsize, mpsc::{channel, Sender}, LazyLock}, thread};
 
-use gtk::{glib::object::{IsA, ObjectExt}, prelude::*, ProgressBar, Spinner, Widget};
-use libadwaita::{prelude::BinExt, Bin};
 use ureq::{http::{header::{CONTENT_DISPOSITION, CONTENT_LENGTH}, Response}, Body, ResponseExt};
-
-use crate::api::control::callbacks::exec_safe_gtk;
 
 pub struct HttpDownload {
     progress: AtomicUsize,

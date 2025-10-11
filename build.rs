@@ -1,4 +1,7 @@
+use std::path::PathBuf;
+
 use dotenv::dotenv;
+use slint_build::CompilerConfiguration;
 
 fn main() {
     dotenv().ok();
@@ -21,5 +24,11 @@ fn main() {
     println!("cargo:rustc-env=BACKEND_URL={}", backend_url);
     println!("cargo:rustc-env=CRYPT_PASS={}", crypt_pass);
 
-    slint_build::compile("ui/main.slint").unwrap();
+    let conf = CompilerConfiguration::new();
+    let out_dir = PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
+    let main_out = out_dir.join("main_ui.rs");
+    let welcome_out = out_dir.join("welcome_ui.rs");
+
+    slint_build::compile_with_output_path("ui/main.slint", main_out, conf.clone()).unwrap();
+    slint_build::compile_with_output_path("ui/welcome_ui.slint", welcome_out, conf).unwrap();
 }

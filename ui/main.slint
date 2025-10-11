@@ -1,31 +1,28 @@
 import { Subheader } from "subheader.slint";
 import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.slint";
-
-export global Callbacks {
-    callback click_discord();
-    callback click_youtube();
-    callback click_x();
-}
+import { ButtonRegular } from "button_regular.slint";
 
 export component Main inherits Window {
+	public function hide_popup() {
+		dialog-data.shown = false;
+	    popup.close();
+	}
+
+	public function show_popup() {
+	    popup.show();
+	}
+
 	width: 1280px;
 	height: 720px;
 	background: #363636;
 
-	in property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, title: "", content: "" };
+	in-out property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, content: "" };
 	callback dialog_confirmed();
 
-	drop-shadow-blur: dialog-data.shown ? 10px : 0px;
-
-	animate drop-shadow-blur {
-		easing: ease-in-out;
-		duration: 200ms;
-	}
-
 	// Dialog
-	PopupWindow {
-		close-on-click: false;
-		opacity: 0.0;
+	popup := PopupWindow {
+		close-policy: no-auto-close;
+		opacity: root.dialog-data.shown ? 1.0 : 0.0;
 		min-width: 400px;
 		min-height: 180px;
 		x: (parent.width - self.width) / 2;
@@ -37,21 +34,42 @@ export component Main inherits Window {
 		}
 
 		Rectangle {
-			padding: 12px;
 			border-width: 1px;
 			border-radius: 42px;
 			border-color: rgba(0, 0, 0, 0.2);
+			drop-shadow-blur: 8px;
 
 			VerticalLayout {
+				spacing: 20px;
+				alignment: space-around;
+
 				HorizontalLayout {
+					alignment: start;
+
 					Image {
 						width: 50px;
 						height: 50px;
 						source: root.dialog-data.severity == DialogSeverity.info ? @image-url("assets/icons/info.svg") : @image-url("assets/icons/error.svg");
 					}
+					Text {
+						text: dialog-data.content;
+					}
 				}
 				HorizontalLayout {
-					
+					alignment: end;
+
+					ButtonRegular { visible: dialog-data.type == DialogType.confirmation; primary: false; on_click => { hide_popup() } }
+					ButtonRegular {
+						primary: true;
+
+						on_click => {
+							hide_popup();
+
+							if (dialog-data.type == DialogType.confirmation) {
+								dialog_confirmed();
+							}
+						}
+					}
 				}
 			}
 		}
@@ -68,4 +86,12 @@ export component Main inherits Window {
 			Subheader {}
 		}
 	}
+}
+
+import { WelcomeUI } from "welcome_ui.slint";
+
+export global Callbacks {
+    callback click_discord();
+    callback click_youtube();
+    callback click_x();
 }

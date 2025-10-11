@@ -1,0 +1,45 @@
+import { ButtonRegular } from "button_regular.slint";
+import { CleanSpinner } from "clean_spinner.slint";
+
+export component WelcomeUI inherits Window {
+	background: #363636;
+
+	in-out property <bool> waiting: false;
+
+	callback login();
+
+	VerticalLayout {
+		padding: 24px;
+		alignment: space-between;
+		spacing: 32px;
+		Text {
+			text: "Welcome!";
+			font-size: 56px;
+			font-weight: 700;
+			color: white;
+		}
+		VerticalLayout {
+			alignment: center;
+			spacing: 0px;
+			padding: 8px;
+			padding-left: 18px;
+			padding-right: 18px;
+			Rectangle {
+				background: #282828;
+				border-radius: 32px;
+				border-width: 1px;
+				border-color: #353535;
+				Text { text: "Sign in with Microsoft:"; color: white; }
+			}
+			ButtonRegular {
+				primary: true;
+				initial-width: 300px;
+				initial-height: 60px;
+				CleanSpinner {
+					visible: waiting;
+					width: 36px;
+				}
+			}
+		}
+	}
+}
