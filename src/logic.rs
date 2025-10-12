@@ -1,4 +1,12 @@
+use slint::invoke_from_event_loop;
+
+use crate::{generated::{DialogSeverity, Main}, ui::dialogs::present_dialog};
+
 static BACKEND_URL: &str = env!("BACKEND_URL");
+
+pub fn safe<F>(f: F) where F: FnOnce() + Send + 'static {
+    invoke_from_event_loop(f);
+}
 
 pub fn open_discord(ui: &Main) {
     if let Err(e) = webbrowser::open(format!("{BACKEND_URL}/discord")) {

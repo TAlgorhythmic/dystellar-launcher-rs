@@ -1,11 +1,12 @@
-use std::{error::Error, sync::LazyLock, time::Duration};
+use std::{error::Error, sync::LazyLock, thread, time::Duration};
 
 use json::{object, stringify, JsonValue};
+use slint::Weak;
 use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::{control::database::store_session, typedef::ms_session::MicrosoftSession}};
+use crate::{api::{control::database::store_session, typedef::ms_session::MicrosoftSession}, generated::Main, logic::safe};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -35,27 +36,32 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
     Ok(res)
 }
 
-pub fn login_existing(access_token: &str, refresh_token: &str) -> Result<MicrosoftSession, Box<dyn Error + Send + Sync>> {
-    let res = post(format!("/api/microsoft/login_existing").as_str(), object! {
-        access_token: access_token, refresh_token: refresh_token
-    })?;
+pub fn login_existing<F>(ui: Weak<Main>, access_token: Box<str>, refresh_token: Box<str>, f: F) -> Result<MicrosoftSession, Box<dyn Error + Send + Sync>>
+where
+    F: FnOnce(MicrosoftSession) + Send + 'static
+{
+    thread::spawn(|| {
+        let res = post(format!("/api/microsoft/login_existing").as_str(), object! {
+            access_token: access_token, refresh_token: refresh_token
+        })?;
 
-    let uuid_opt = res["uuid"].as_str();
-    let mc_token_opt = res["minecraft_token"].as_str();
-    let access_token_opt = res["access_token"].as_str();
-    let refresh_token_opt = res["refresh_token"].as_str();
+        let uuid_opt = res["uuid"].as_str();
+        let mc_token_opt = res["minecraft_token"].as_str();
+        let access_token_opt = res["access_token"].as_str();
+        let refresh_token_opt = res["refresh_token"].as_str();
 
-    if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
-        return Err("Malformed or incomplete data. Please contact support.".into());
-    }
+        if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
+            return Err("Malformed or incomplete data. Please contact support.".into());
+        }
 
-    Ok(MicrosoftSession {
-        uuid: uuid_opt.unwrap().into(),
-        username: "TODO?".into(),
-        access_token: access_token_opt.unwrap().into(),
-        refresh_token: refresh_token_opt.unwrap().into(),
-        minecraft_token: mc_token_opt.unwrap().into()
-    })
+        safe(|| f(Ok(MicrosoftSession {
+            uuid: uuid_opt.unwrap().into(),
+            username: "TODO?".into(),
+            access_token: access_token_opt.unwrap().into(),
+            refresh_token: refresh_token_opt.unwrap().into(),
+            minecraft_token: mc_token_opt.unwrap().into()
+        })));
+    });
 }
 
 fn callback_poll<F>(uuid: Uuid, callback: F)

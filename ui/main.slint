@@ -2,6 +2,13 @@ import { Subheader } from "subheader.slint";
 import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.slint";
 import { ButtonRegular } from "button_regular.slint";
 
+export enum AppState {
+	loading,
+	network_error,
+	session_error,
+	ready
+}
+
 export component Main inherits Window {
 	public function hide_popup() {
 		dialog-data.shown = false;
@@ -17,11 +24,13 @@ export component Main inherits Window {
 	background: #363636;
 
 	in-out property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, content: "" };
+	in-out property<AppState> app_state: loading;
 	callback dialog_confirmed();
 
 	// Dialog
 	popup := PopupWindow {
 		close-policy: no-auto-close;
+		visible: root.dialog-data.shown;
 		opacity: root.dialog-data.shown ? 1.0 : 0.0;
 		min-width: 400px;
 		min-height: 180px;

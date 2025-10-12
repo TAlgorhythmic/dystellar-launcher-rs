@@ -1,17 +1,15 @@
-use crate::generated::{Callbacks, Main};
+use crate::generated::{Callbacks, Main, WelcomeUI};
 use crate::logic::{open_discord, open_youtube};
+use crate::ui::app::new_welcome_window;
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
+use std::sync::{Arc, Mutex};
 use std::{cell::RefCell, error::Error};
 
 const APP_ID: &str = "gg.dystellar.mmorpg.Launcher";
-
-thread_local! {
-    pub static SESSION: RefCell<Option<MicrosoftSession>> = RefCell::new(None);
-}
 
 fn setup_callbacks(ui: Weak<Main>) {
     let ui = ui.upgrade().unwrap();
@@ -32,30 +30,24 @@ pub fn present_main_ui() -> Result<Main, slint::PlatformError> {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let session = retrieve_session().expect("FATAL: Failed to retrieve session, unable to continue");
-    if session.is_none() {
-        let welcome_screen = welcome_login_screen(&app);
+    let tokens = retrieve_session()?;
+    let session: Arc<Mutex<Option<MicrosoftSession>>> = Arc::new(Mutex::new(None));
 
-        welcome_screen.present();
-    } else {
-        let (access_token, refresh_token) = session.unwrap();
-        let ui = present_main_ui(&app);
-
-        let session_opt = login_existing(&access_token, &refresh_token);
-        if let Err(err) = &session_opt {
-            show_dialog("Failed to refresh tokens", format!("An unexpected error occurred when fetching tokens: {}", err.to_string()).as_str(), None, ICON_ERROR);
-            return;
-        }
-        
-        let tokens = session_opt.unwrap();
-        if let Err(err) = store_session(tokens.get_access_token(), tokens.get_refresh_token()) {
-            show_dialog("Failed to save session", format!("An unexpected error occurred when updating database: {} Please contact support.", err.to_string()).as_str(), None, ICON_ERROR);
-            return;
-        }
-
-        SESSION.with(|s| s.replace(Some(tokens)));
-
+    if tokens.is_none() {
+        new_welcome_window()?.run()?;
     }
 
-    present_main_ui()
+    if session.is_none() {
+        let (access_token, refresh_token) = tokens.unwrap();
+
+        login_existing(access_token, refresh_token)?;
+    }
+
+    if let Err(err) = store_session(tokens.get_access_token(), tokens.get_refresh_token()) {
+        show_dialog("Failed to save session", format!("An unexpected error occurred when updating database: {} Please contact support.", err.to_string()).as_str(), None, ICON_ERROR);
+        return;
+    }
+
+    SESSION.with(|s| s.replace(Some(tokens)));
+
 }
