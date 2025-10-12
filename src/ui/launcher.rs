@@ -30,13 +30,15 @@ pub fn present_main_ui() -> Result<Main, slint::PlatformError> {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let tokens = retrieve_session()?;
-    let session: Arc<Mutex<Option<MicrosoftSession>>> = Arc::new(Mutex::new(None));
+    let tokens = retrieve_session();
+    let s_mutex: Arc<Mutex<Option<MicrosoftSession>>> = Arc::new(Mutex::new(None));
 
     if tokens.is_none() {
-        new_welcome_window()?.run()?;
+        new_welcome_window(s_mutex.clone())?.run()?;
     }
 
+    let session = s_mutex.lock()?;
+    let ui = Main::new()
     if session.is_none() {
         let (access_token, refresh_token) = tokens.unwrap();
 

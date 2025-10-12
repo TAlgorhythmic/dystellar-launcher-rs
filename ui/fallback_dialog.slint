@@ -1,0 +1,38 @@
+import { ButtonRegular } from "button_regular.slint";
+
+export component FallbackDialog inherits Window {
+	min-width: 400px;
+	min-height: 180px;
+
+	callback close();
+	in-out property <string> text;
+
+	Rectangle {
+	   VerticalLayout {
+			spacing: 20px;
+			alignment: space-around;
+			HorizontalLayout {
+				alignment: start;
+				Image {
+					width: 50px;
+					height: 50px;
+					source: @image-url("assets/icons/error.svg");
+				}
+				Text {
+					text: root.text;
+				}
+			}
+			HorizontalLayout {
+				alignment: end;
+				ButtonRegular {
+					primary: true;
+					on_click => { close() }
+
+					Text {
+						text: "Ok";
+					}
+				}
+			}
+		}
+	}
+}
