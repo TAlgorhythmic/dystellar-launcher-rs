@@ -1,0 +1,12 @@
+export component HoverableText inherits Text {
+	overflow: elide;
+	opacity: area.has-hover ? 1.0 : 0.0;
+
+	animate opacity {
+		easing: ease-in-out;
+		duration: 200ms;
+		delay: 300ms;
+	}
+
+	area := TouchArea {}
+}

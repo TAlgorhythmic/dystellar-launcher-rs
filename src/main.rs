@@ -14,6 +14,7 @@ mod generated {
     include!(concat!(env!("OUT_DIR"), "/main_ui.rs"));
     include!(concat!(env!("OUT_DIR"), "/welcome_ui.rs"));
     include!(concat!(env!("OUT_DIR"), "/fallback_dialog_ui.rs"));
+    include!(concat!(env!("OUT_DIR"), "/download_manager_ui.rs"));
 }
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
