@@ -2,6 +2,10 @@
 
 use std::error::Error;
 
+use slint::ComponentHandle;
+
+use crate::generated::FallbackDialog;
+
 mod ui;
 mod api;
 mod logic;
@@ -9,8 +13,20 @@ mod logic;
 mod generated {
     include!(concat!(env!("OUT_DIR"), "/main_ui.rs"));
     include!(concat!(env!("OUT_DIR"), "/welcome_ui.rs"));
+    include!(concat!(env!("OUT_DIR"), "/fallback_dialog_ui.rs"));
 }
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    ui::launcher::run()?;
+    let res = ui::launcher::run();
+    
+    if let Err(err) = res {
+        let dialog = FallbackDialog::new()?;
+
+        dialog.set_text(format!("Failed to initialize: {}", err.to_string()));
+        dialog.on_close(|| dialog.hide());
+
+        dialog.run()?;
+    }
+
+    Ok(())
 }

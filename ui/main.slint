@@ -23,6 +23,7 @@ export component Main inherits Window {
 	height: 720px;
 	background: #363636;
 	full-screen: false;
+	title: "Dystellar Launcher";
 
 	in-out property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, content: "" };
 	in-out property<AppState> app_state: loading;
@@ -68,10 +69,14 @@ export component Main inherits Window {
 				HorizontalLayout {
 					alignment: end;
 
-					ButtonRegular { visible: dialog-data.type == DialogType.confirmation; primary: false; on_click => { hide_popup() } }
+					ButtonRegular {
+						visible: dialog-data.type == DialogType.confirmation;
+						primary: false;
+						on_click => { hide_popup() }
+						Text { text: "Cancel"; }
+					}
 					ButtonRegular {
 						primary: true;
-
 						on_click => {
 							hide_popup();
 
@@ -79,6 +84,7 @@ export component Main inherits Window {
 								dialog_confirmed();
 							}
 						}
+						Text { text: dialog-data.type == DialogType.confirmation ? "Proceed" : "Ok"; }
 					}
 				}
 			}

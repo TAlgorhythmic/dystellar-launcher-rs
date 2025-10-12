@@ -3,6 +3,7 @@ import { CleanSpinner } from "clean_spinner.slint";
 
 export component WelcomeUI inherits Window {
 	background: #363636;
+	title: "Dystellar Launcher | Welcome";
 
 	in-out property <bool> waiting: false;
 
@@ -37,7 +38,7 @@ export component WelcomeUI inherits Window {
 				initial-height: 60px;
 				CleanSpinner {
 					visible: waiting;
-					width: 36px;
+					size: 36px;
 				}
 			}
 		}
