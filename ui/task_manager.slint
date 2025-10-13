@@ -1,0 +1,26 @@
+import { HoverableText } from "hoverable_text.slint";
+import { TaskData, TaskState } from "typedef/type.slint";
+import { ProgressIndicator } from "std-widgets.slint";
+
+export component DownloadManager inherits PopupWindow {
+	in-out property <[TaskData]> tasks: [];
+
+	function calc_mid() -> float {
+	    let mid = 0.0;
+	}
+
+	VerticalLayout {
+		padding: 10px;
+		HorizontalLayout {
+			spacing: 6px;
+			Text { text: "Tasks"; }
+			Rectangle { horizontal-stretch: 1; height: 1px; border-width: 1px; border-color: white; border-radius: 2px; }
+			ProgressIndicator {
+				progress: {
+					let mid = 0.0;
+					return mid;
+				}
+			}
+		}
+	}
+}

@@ -29,10 +29,8 @@ fn main() {
     let main_out = out_dir.join("main_ui.rs");
     let welcome_out = out_dir.join("welcome_ui.rs");
     let fallback_dialog_out = out_dir.join("fallback_dialog_ui.rs");
-    let download_manager_out = out_dir.join("download_manager_ui.rs");
 
     slint_build::compile_with_output_path("ui/main.slint", main_out, conf.clone()).unwrap();
     slint_build::compile_with_output_path("ui/welcome_ui.slint", welcome_out, conf.clone()).unwrap();
-    slint_build::compile_with_output_path("ui/fallback_dialog.slint", fallback_dialog_out, conf.clone()).unwrap();
-    slint_build::compile_with_output_path("ui/download_manager.slint", download_manager_out, conf).unwrap();
+    slint_build::compile_with_output_path("ui/fallback_dialog.slint", fallback_dialog_out, conf).unwrap();
 }

@@ -1,0 +1,10 @@
+export enum TaskState { waiting, in_progress, success, failed }
+export enum TaskType { download, sanity_check, operation, other }
+
+export struct TaskData {
+	name: string,
+	details: string,
+	progress: float,
+	state: TaskState,
+	type: TaskType
+}
