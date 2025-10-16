@@ -60,7 +60,7 @@ component Group inherits VerticalLayout {
 }
 
 export component TaskManager inherits PopupWindow {
-	in-out property <[TasksGroup]> tasks: [];
+	in-out property <[TasksGroup]> groups: [];
 	in-out property <float> total_progress: 0.0;
 
 	callback cancel();
@@ -85,22 +85,22 @@ export component TaskManager inherits PopupWindow {
 				spacing: 6px;
 				alignment: start;
 				Text { text: "Downloads"; }
-				for group in tasks: Group {
+				for group in groups: Group {
 					visible: group.type == TaskType.download;
 					group: group;
 				}
 				Text { text: "Sanity Checks"; }
-				for group in tasks: Group {
+				for group in groups: Group {
 					visible: group.type == TaskType.integrity-check;
 					group: group;
 				}
 				Text { text: "Operation"; }
-				for group in tasks: Group {
+				for group in groups: Group {
 					visible: group.type == TaskType.operation;
 					group: group;
 				}
 				Text { text: "Other"; }
-				for group in tasks: Group {
+				for group in groups: Group {
 					visible: group.type == TaskType.operation;
 					group: group;
 				}

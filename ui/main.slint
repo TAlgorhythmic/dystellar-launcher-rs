@@ -1,6 +1,8 @@
 import { Subheader } from "subheader.slint";
 import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.slint";
+import { TasksGroup, TaskData, TaskState, TaskType } from "typedef/type.slint";
 import { ButtonRegular } from "button_regular.slint";
+import { TaskManager } from "task_manager.slint";
 
 export enum AppState {
 	loading,
@@ -25,16 +27,35 @@ export component Main inherits Window {
 	full-screen: false;
 	title: "Dystellar Launcher";
 
+	in-out property <[TasksGroup]> groups: [];
+	in-out property <float> total_task_progress: 0.0;
+	callback cancel_tasks();
+
 	in-out property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, content: "" };
 	in-out property<AppState> app_state: loading;
 	callback dialog_confirmed();
+
+	TaskManager {
+		groups: parent.groups;
+		visible: groups.length > 0;
+		opacity: groups.length > 0 ? 1.0 : 0.0;
+		width: 860px;
+		height: 640px;
+		x: (parent.width - self.width) / 2;
+		y: (parent.height - self.height) / 2 - (groups.length > 0 ? 0 : 20px);
+
+		animate opacity, y {
+			easing: ease-in-out;
+			duration: 200ms;
+		}
+	}
 
 	// Dialog
 	popup := PopupWindow {
 		close-policy: no-auto-close;
 		visible: root.dialog-data.shown;
 		opacity: root.dialog-data.shown ? 1.0 : 0.0;
-		min-width: 400px;
+		width: 400px;
 		min-height: 180px;
 		x: (parent.width - self.width) / 2;
 		y: (parent.height - self.height) / 2 - (root.dialog-data.shown ? 0 : 20px);
@@ -103,8 +124,6 @@ export component Main inherits Window {
 		}
 	}
 }
-
-import { WelcomeUI } from "welcome_ui.slint";
 
 export global Callbacks {
     callback click_discord();
