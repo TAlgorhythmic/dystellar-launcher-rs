@@ -1,17 +1,20 @@
-use std::{error::Error, sync::{atomic::AtomicUsize, mpsc::{channel, Sender}, LazyLock}, thread};
+use std::{error::Error, sync::{atomic::AtomicUsize}};
 
 use ureq::{http::{header::{CONTENT_DISPOSITION, CONTENT_LENGTH}, Response}, Body, ResponseExt};
 
-pub struct HttpDownload {
+use crate::generated::TaskData;
+
+pub struct HttpDownload<F> where F: Fn(TaskData) + Send + 'static {
     progress: AtomicUsize,
     total: usize,
     name: Box<str>,
-    task: Task,
-    http_stream: Response<Body>
+    task: TaskData,
+    http_stream: Response<Body>,
+    on_change: F
 }
 
-impl HttpDownload {
-    pub fn new_from_http_body(res: Response<Body>, progress_bar: ProgressBar, bar_content: gtk::Box) -> Result<Self, Box<dyn Error>> {
+impl<F> HttpDownload<F> where F: Fn(TaskData) + Send + 'static {
+    pub fn new_from_http_body(res: Response<Body>, task_data: TaskData, on_change: F) -> Result<Self, Box<dyn Error>>  {
         let name = match res.headers().get(CONTENT_DISPOSITION) {
             Some(header) => String::from(header.to_str()?),
             None => {
@@ -28,61 +31,9 @@ impl HttpDownload {
             progress: AtomicUsize::new(0),
             total: total_bytes,
             name: name.into(),
-            progress_bar, bar_content,
-            http_stream: res
+            task: task_data,
+            http_stream: res,
+            on_change
         })
-    }
-}
-
-type Task = Box<dyn FnOnce() + Send + 'static>;
-static WORKER: LazyLock<Sender<Task>> = LazyLock::new(|| {
-    let (sender, receiver) = channel::<Task>();
-    
-    thread::spawn(|| {
-        for task in receiver {
-            task();
-        }
-    });
-
-    sender
-});
-
-pub struct LoadableContainer {
-    container: Bin,
-    spinner: Spinner
-}
-
-unsafe impl Send for LoadableContainer {}
-unsafe impl Sync for LoadableContainer {}
-
-impl LoadableContainer {
-    pub fn new(bin: Bin) -> Self {
-        let spinner = Spinner::builder().halign(gtk::Align::Fill).valign(gtk::Align::Fill).build();
-        bin.set_child(Some(&spinner));
-        spinner.start();
-        Self { container: bin, spinner }
-    }
-
-    pub fn load<W, F>(self, exec: F)
-    where
-        W: IsA<Widget> + 'static,
-        F: FnOnce(&LoadableContainer) -> W + Send + 'static
-    {
-        let boxed = Box::new(move || {
-            exec_safe_gtk(move || {
-                let widget = exec(&self).upcast::<Widget>();
-
-                self.spinner.stop();
-                self.get_widget().set_child(Some(&widget));
-            });
-        });
-
-        if let Err(err) = WORKER.send(boxed) {
-            eprintln!("Failed to send task: {}", err.to_string());
-        }
-    }
-
-    pub fn get_widget(&self) -> &Bin {
-        &self.container
     }
 }

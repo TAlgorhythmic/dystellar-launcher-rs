@@ -13,7 +13,7 @@ static STORAGE: LazyLock<Db> = LazyLock::new(|| {
 
 static SESSION_TREE: LazyLock<Tree> = LazyLock::new(|| STORAGE.open_tree("session").expect("Failed to open session tree"));
 
-pub fn store_session(access_token: &str, refresh_token: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn store_session(access_token: &str, refresh_token: &str) -> Result<(), Box<dyn Error>> {
     let crypt = &CRYPT;
     let tree = &SESSION_TREE;
     let encrypted_access_token = crypt.encrypt_to_bytes(access_token);
@@ -25,7 +25,7 @@ pub fn store_session(access_token: &str, refresh_token: &str) -> Result<(), Box<
     Ok(())
 }
 
-pub fn retrieve_session() -> Result<Option<(Box<str>, Box<str>)>, Box<dyn Error + Send + Sync>> {
+pub fn retrieve_session() -> Result<Option<(Box<str>, Box<str>)>, Box<dyn Error>> {
     let tree = &SESSION_TREE;
 
     let encrypted_access_token = tree.get(b"access_token")?;
