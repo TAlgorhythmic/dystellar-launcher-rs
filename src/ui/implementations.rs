@@ -6,8 +6,7 @@ pub struct HttpDownload {
     progress: AtomicUsize,
     total: usize,
     name: Box<str>,
-    progress_bar: ProgressBar,
-    bar_content: gtk::Box,
+    task: Task,
     http_stream: Response<Body>
 }
 

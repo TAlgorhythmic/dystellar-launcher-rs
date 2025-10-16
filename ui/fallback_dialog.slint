@@ -1,5 +1,6 @@
 import { ButtonRegular } from "button_regular.slint";
-import { DialogType } from "typedef/dialog_utils.slint";
+
+export enum FallbackDialogType { basic, confirmation }
 
 export component FallbackDialog inherits Window {
 	in property <string> name;
@@ -11,7 +12,7 @@ export component FallbackDialog inherits Window {
 	callback close();
 	callback confirm();
 	in-out property <string> text;
-	in-out property <DialogType> type;
+	in-out property <FallbackDialogType> type;
 
 	Rectangle {
 	   VerticalLayout {
@@ -22,7 +23,7 @@ export component FallbackDialog inherits Window {
 				Image {
 					width: 50px;
 					height: 50px;
-					source: type == DialogType.basic ? @image-url("assets/icons/error.svg") : @image-url("assets/icons/info.svg");
+					source: type == FallbackDialogType.basic ? @image-url("assets/icons/error.svg") : @image-url("assets/icons/info.svg");
 				}
 				Text {
 					text: root.text;
@@ -31,7 +32,7 @@ export component FallbackDialog inherits Window {
 			HorizontalLayout {
 				alignment: end;
 				ButtonRegular {
-					visible: type == DialogType.confirmation;
+					visible: type == FallbackDialogType.confirmation;
 					primary: false;
 					on_click => { close() }
 					Text { text: "Cancel"; }
@@ -41,11 +42,11 @@ export component FallbackDialog inherits Window {
 					on_click => {
 						close();
 
-						if (type == DialogType.confirmation) {
+						if (type == FallbackDialogType.confirmation) {
 							confirm();
 						}
 					}
-					Text { text: type == DialogType.confirmation ? "Proceed" : "Ok"; }
+					Text { text: type == FallbackDialogType.confirmation ? "Proceed" : "Ok"; }
 				}
 			}
 		}
