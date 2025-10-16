@@ -1,0 +1,35 @@
+export component ProgressBar {
+	in-out property <float> progress: 0.5;
+	in-out property <color> color: #006856;
+
+	animate progress, color {
+		duration: 140ms;
+		easing: ease-in-out;
+	}
+
+	Rectangle {
+		background: rgba(0, 0, 0, 0.2);
+		border-width: 1px;
+		border-radius: 60px;
+		border-color: rgba(255, 255, 255, 0.05);
+		width: parent.width;
+		height: parent.width;
+		HorizontalLayout {
+			x: 0;
+			y: 0;
+			height: root.height;
+			width: root.width * root.progress;
+			clip: true;
+			Rectangle {
+				x: 0;
+				y: 0;
+				height: root.height;
+				width: root.width;
+				background: root.color;
+				border-width: 1px;
+				border-radius: 60px;
+				border-color: root.color.brighter(0.3);
+			}
+		}
+	}
+}
