@@ -6,7 +6,7 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::{control::database::store_session, typedef::ms_session::MicrosoftSession}, generated::{AppState, DialogSeverity, Main, WelcomeUI}, logic::safe, ui::dialogs::{present_confirmation_dialog_standalone, present_dialog, present_dialog_standalone}};
+use crate::{api::{control::database::store_session, typedef::ms_session::MicrosoftSession}, generated::{AppState, DialogSeverity, Main}, logic::safe, ui::dialogs::{present_dialog, present_dialog_standalone}};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -40,27 +40,32 @@ pub fn login_existing<F>(ui: Weak<Main>, access_token: Box<str>, refresh_token: 
 where
     F: FnOnce(MicrosoftSession) + Send + 'static
 {
-    thread::spawn(|| {
+    thread::spawn(move || {
         let result = post(format!("/api/microsoft/login_existing").as_str(), object! {
-            access_token: access_token, refresh_token: refresh_token
+            access_token: access_token.as_ref(), refresh_token: refresh_token.as_ref()
         });
 
+        let ui = ui;
+
         if let Err(err) = &result {
-            safe(|| {
-                let ui_owned = ui.upgrade().unwrap();
+            let err_str = format!("Failed to login: {}", err.to_string());
+
+            safe({
+                let ui_owned = ui.clone();
+                move || { present_dialog(&ui_owned.upgrade().unwrap(), &err_str, DialogSeverity::Error); }
             });
             return;
         }
 
         let res = result.unwrap();
 
-        let uuid_opt = res["uuid"].as_str();
-        let mc_token_opt = res["minecraft_token"].as_str();
-        let access_token_opt = res["access_token"].as_str();
-        let refresh_token_opt = res["refresh_token"].as_str();
+        let uuid_opt: Option<Box<str>> = res["uuid"].as_str().map(|s| s.into());
+        let mc_token_opt: Option<Box<str>> = res["minecraft_token"].as_str().map(|s| s.into());
+        let access_token_opt: Option<Box<str>> = res["access_token"].as_str().map(|s| s.into());
+        let refresh_token_opt: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
 
         if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
-            safe(|| {
+            safe(move || {
                 let ui_owned = ui.upgrade().unwrap();
 
                 present_dialog(&ui_owned, "Failed to process session: Malformed or incomplete data, please contact support.", DialogSeverity::Error);
@@ -69,27 +74,29 @@ where
             return;
         }
 
-        safe(|| f(Ok(MicrosoftSession {
-            uuid: uuid_opt.unwrap().into(),
+        safe(move || f(MicrosoftSession {
+            uuid: uuid_opt.unwrap(),
             username: "TODO?".into(),
-            access_token: access_token_opt.unwrap().into(),
-            refresh_token: refresh_token_opt.unwrap().into(),
-            minecraft_token: mc_token_opt.unwrap().into()
-        })));
+            access_token: access_token_opt.unwrap(),
+            refresh_token: refresh_token_opt.unwrap(),
+            minecraft_token: mc_token_opt.unwrap()
+        }));
     });
 }
 
 fn poll_uuid<F>(uuid: Uuid, callback: F)
 where
-    F: Fn(MicrosoftSession) + 'static
+    F: Fn(MicrosoftSession) + Send + 'static
 {
-    thread::spawn(|| {
+    thread::spawn(move || {
         let callback_url = format!("{BACKEND_URL}/api/microsoft/callback");
         let uuid_str = uuid.to_string();
         let ms_url = format!("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id={CLIENT_ID}&response_type=code&redirect_uri={callback_url}&scope=XboxLive.signin%20offline_access&state={uuid_str}");
 
         if let Err(err) = webbrowser::open(&ms_url) {
-            safe(|| present_dialog_standalone("System Error", format!("Failed to open browser: {}", err.to_string()).as_str()));
+            let err_str = format!("Failed to open browser: {}", err.to_string());
+
+            safe(move || present_dialog_standalone("System Error", err_str.as_str()));
             return;
         }
 
@@ -100,7 +107,8 @@ where
 
             if let Err(err) = &res {
                 let str_err = err.to_string();
-                safe(|| present_dialog_standalone("Fatal Error", format!("Failed to check login status: {str_err} \nIs your internet down?").as_str()));
+
+                safe(move || present_dialog_standalone("Fatal Error", format!("Failed to check login status: {str_err} \nIs your internet down?").as_str()));
                 break;
             }
 
@@ -109,7 +117,9 @@ where
 
             if !ok.unwrap_or(false) {
                 let body_err_msg: Box<str> = body_res["error"].as_str().unwrap_or("Cannot provide error message").into();
-                safe(|| present_dialog_standalone("Server Error", format!("Login failed: {}. Please contact support.", body_err_msg).as_str()));
+                let err_str = format!("Login failed: {}. Please contact support.", body_err_msg);
+
+                safe(move || present_dialog_standalone("Server Error", err_str.as_str()));
                 break;
             }
 
@@ -134,7 +144,8 @@ where
                 minecraft_token: mc_token_opt.unwrap().into()
             };
             if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
-                safe(|| present_dialog_standalone("System Error", format!("Failed to store session: {}\nYou'll need to login again when you restart the launcher.", err.to_string()).as_str()));
+                let err_str = format!("Failed to store session: {}\nYou'll need to login again when you restart the launcher.", err.to_string());
+                safe(move || present_dialog_standalone("System Error", err_str.as_str()));
             }
 
             callback(session);
@@ -146,7 +157,7 @@ where
 
 pub fn login<F>(callback: F)
 where
-    F: Fn(MicrosoftSession) + 'static
+    F: Fn(MicrosoftSession) + Send + 'static
 {
     let uuid = Uuid::new_v4();
     let uuid_str = uuid.to_string();

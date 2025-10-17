@@ -22,8 +22,11 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Err(err) = res {
         let dialog = FallbackDialog::new()?;
 
-        dialog.set_text(format!("Failed to initialize: {}", err.to_string()));
-        dialog.on_close(|| dialog.hide());
+        dialog.set_text(format!("Failed to initialize: {}", err.to_string()).into());
+        dialog.on_close({
+            let dialog = dialog.clone_strong();
+            move || { dialog.hide(); }
+        });
 
         dialog.run()?;
     }

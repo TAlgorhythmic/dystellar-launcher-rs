@@ -33,13 +33,20 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     if tokens.is_none() {
         let win = WelcomeUI::new()?;
+        let mutex_cl = s_mutex.clone();
+        let win_weak = win.as_weak();
 
-        win.on_login(|| {
+        win.on_login(move || {
+            let win = win_weak.upgrade().unwrap();
+            let win_weak = win_weak.clone();
+            let mutex_cl = mutex_cl.clone();
+
             win.set_waiting(true);
-            login(|session| {
+            login(move |session| {
                 store_session(&session.access_token, &session.refresh_token);
 
-                let mut guard = s_mutex.lock().unwrap();
+                let mut guard = mutex_cl.lock().unwrap();
+                let win = win_weak.upgrade().unwrap();
 
                 *guard = Some(session);
                 win.set_waiting(false);
@@ -50,20 +57,24 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         win.run()?; // Blocking call until the user is logged in.
     }
 
-    let session = s_mutex.lock()?;
+    let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
 
-    setup_callbacks(ui.as_weak(), s_mutex);
+    setup_callbacks(ui.as_weak(), s_mutex.clone());
     ui.set_groups(ModelRc::from(Rc::new(VecModel::from(vec![]))));
-    let i = ui.get_groups().row_data(0).unwrap();
+
 
     if session.is_none() {
         let (access_token, refresh_token) = tokens.unwrap();
+        let ui_weak = ui.as_weak();
+        let mutex_cl = s_mutex.clone();
 
         login_existing(ui.as_weak(), access_token, refresh_token, move |session| {
             store_session(&session.access_token, &session.refresh_token);
 
-            let mut guard = s_mutex.lock().unwrap();
+            let mut guard = mutex_cl.lock().unwrap();
+            let ui = ui_weak.upgrade().unwrap();
+
             *guard = Some(session);
             ui.set_app_state(AppState::Ready);
         });

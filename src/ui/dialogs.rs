@@ -1,6 +1,6 @@
 use slint::ComponentHandle;
 
-use crate::generated::{DialogData, DialogSeverity, DialogType, FallbackDialog, Main};
+use crate::generated::{DialogData, DialogSeverity, DialogType, FallbackDialog, FallbackDialogType, Main};
 
 pub fn present_dialog(ui: &Main, text: &str, severity: DialogSeverity) {
     ui.set_dialog_data(DialogData { content: text.into(), severity, shown: true, r#type: DialogType::Basic });
@@ -8,7 +8,7 @@ pub fn present_dialog(ui: &Main, text: &str, severity: DialogSeverity) {
 }
 
 pub fn present_confirmation_dialog<F>(ui: &Main, text: &str, severity: DialogSeverity, exec: F)
-where F: Fn() + Send + Sync {
+where F: Fn() + Send + Sync + 'static {
     ui.set_dialog_data(DialogData { content: text.into(), severity, shown: true, r#type: DialogType::Basic });
     ui.on_dialog_confirmed(exec);
     ui.invoke_show_popup();
@@ -19,19 +19,25 @@ pub fn present_dialog_standalone(title: &str, text: &str) {
 
     ui.set_text(text.into());
     ui.set_name(title.into());
-    ui.set_type(DialogType::Basic);
-    ui.on_close(|| ui.hide());
+    ui.set_type(FallbackDialogType::Basic);
+    ui.on_close({
+        let ui = ui.clone_strong();
+        move || { ui.hide(); }
+    });
     ui.show();
 }
 
 pub fn present_confirmation_dialog_standalone<F>(title: &str, text: &str, exec: F)
-where F: Fn() + Send + Sync {
+where F: Fn() + Send + Sync + 'static {
     let ui = FallbackDialog::new().unwrap();
 
-    ui.set_type(DialogType::Confirmation);
+    ui.set_type(FallbackDialogType::Confirmation);
     ui.set_name(title.into());
     ui.set_text(text.into());
-    ui.on_close(|| ui.hide());
+    ui.on_close({
+        let ui = ui.clone_strong();
+        move || { ui.hide(); }
+    });
     ui.on_confirm(exec);
     ui.show();
 }
