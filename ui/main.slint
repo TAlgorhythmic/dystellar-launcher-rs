@@ -3,6 +3,12 @@ import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.sli
 import { TasksGroup, TaskData, TaskState, TaskType } from "typedef/type.slint";
 import { ButtonRegular } from "button_regular.slint";
 import { TaskManager } from "task_manager.slint";
+import "assets/fonts/Orbitron-Black.ttf";
+import "assets/fonts/Orbitron-Bold.ttf";
+import "assets/fonts/Orbitron-ExtraBold.ttf";
+import "assets/fonts/Orbitron-Medium.ttf";
+import "assets/fonts/Orbitron-Regular.ttf";
+import "assets/fonts/Orbitron-SemiBold.ttf";
 
 export enum AppState {
 	loading,
@@ -20,6 +26,9 @@ export component Main inherits Window {
 	public function show_popup() {
 	    popup.show();
 	}
+
+	default-font-family: "Orbitron";
+	default-font-size: 22px;
 
 	width: 1280px;
 	height: 720px;

@@ -4,41 +4,71 @@ import { CleanSpinner } from "clean_spinner.slint";
 export component WelcomeUI inherits Window {
 	background: #363636;
 	title: "Dystellar Launcher | Welcome";
+	default-font-size: 20px;
+	full-screen: false;
 
 	in-out property <bool> waiting: false;
 
 	callback login();
 
 	VerticalLayout {
-		padding: 24px;
-		alignment: space-between;
-		spacing: 32px;
+		padding: 65px;
+		alignment: center;
+		spacing: 24px;
 		Text {
+			horizontal-alignment: center;
 			text: "Welcome!";
-			font-size: 56px;
-			font-weight: 700;
+			font-size: 64px;
+			font-weight: 650;
 			color: white;
 		}
 		VerticalLayout {
 			alignment: center;
 			spacing: 0px;
-			padding: 8px;
+			padding: 14px;
 			padding-left: 18px;
 			padding-right: 18px;
-			Rectangle {
-				background: #282828;
-				border-radius: 32px;
-				border-width: 1px;
-				border-color: #353535;
-				Text { text: "Sign in with Microsoft:"; color: white; }
+			HorizontalLayout {
+				alignment: center;
+				Rectangle {
+					background: #282828;
+					border-radius: 32px;
+					border-width: 1px;
+					border-color: #353535;
+					width: label.preferred-width + 64px;
+					height: label.preferred-height + 12px;
+					label := Text { text: "Sign in with Microsoft:"; color: white; }
+				}
 			}
-			ButtonRegular {
-				primary: true;
-				initial-width: 300px;
-				initial-height: 60px;
-				CleanSpinner {
-					visible: waiting;
-					size: 36px;
+			HorizontalLayout {
+				ButtonRegular {
+					primary: true;
+					initial-width: 350px;
+					initial-height: 80px;
+					CleanSpinner {
+						visible: waiting;
+						size: 36px;
+					}
+					on_click => {
+						waiting = true;
+						login();
+					}
+					HorizontalLayout {
+						alignment: center;
+						spacing: 12px;
+						padding: 16px;
+						Image {
+							source: @image-url("assets/icons/microsoft.png");
+							height: 100%;
+							width: self.height;
+							image-fit: contain;
+						}
+						Text {
+							font-size: 38px;
+							text: "Microsoft";
+							vertical-alignment: center;
+						}
+					}
 				}
 			}
 		}
