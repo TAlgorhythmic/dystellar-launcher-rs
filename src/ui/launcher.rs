@@ -1,6 +1,6 @@
-use crate::generated::{AppState, Callbacks, Main, TasksGroup, WelcomeUI};
+use crate::generated::{AppState, Callbacks, DialogSeverity, Main, TasksGroup, WelcomeUI};
 use crate::logic::{open_discord, open_youtube};
-use crate::ui::dialogs::present_dialog_standalone;
+use crate::ui::dialogs::{present_dialog, present_dialog_standalone};
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -81,7 +81,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let ui_weak = ui.as_weak();
         let mutex_cl = s_mutex.clone();
 
-        login_existing(ui.as_weak(), access_token, refresh_token, move |session| {
+        login_existing(access_token, refresh_token, move |result| {
+            if let Err(err) = &result {
+                present_dialog(&ui_weak.upgrade().unwrap(), &err.to_string(), DialogSeverity::Error);
+                return;
+            }
+
+            let session = result.unwrap();
+
             if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
                 present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str());
             }
