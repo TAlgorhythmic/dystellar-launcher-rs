@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         dialog.set_text(format!("Failed to initialize: {}", err.to_string()).into());
         dialog.on_close({
             let dialog = dialog.clone_strong();
-            move || { dialog.hide(); }
+            move || { let _ = dialog.hide(); }
         });
 
         dialog.run()?;

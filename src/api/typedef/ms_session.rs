@@ -28,3 +28,9 @@ impl MicrosoftSession {
         self.minecraft_token.as_ref()
     }
 }
+
+#[derive(Debug)]
+pub struct ErrorData {
+    pub title: &'static str,
+    pub description: Box<str>
+}

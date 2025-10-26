@@ -22,9 +22,9 @@ pub fn present_dialog_standalone(title: &str, text: &str) {
     ui.set_type(FallbackDialogType::Basic);
     ui.on_close({
         let ui = ui.clone_strong();
-        move || { ui.hide(); }
+        move || { let _ = ui.hide(); }
     });
-    ui.show();
+    let _ = ui.show();
 }
 
 pub fn present_confirmation_dialog_standalone<F>(title: &str, text: &str, exec: F)
@@ -36,8 +36,8 @@ where F: Fn() + Send + Sync + 'static {
     ui.set_text(text.into());
     ui.on_close({
         let ui = ui.clone_strong();
-        move || { ui.hide(); }
+        move || { let _ = ui.hide(); }
     });
     ui.on_confirm(exec);
-    ui.show();
+    let _ = ui.show();
 }

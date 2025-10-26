@@ -1,5 +1,6 @@
 use crate::generated::{AppState, Callbacks, Main, TasksGroup, WelcomeUI};
 use crate::logic::{open_discord, open_youtube};
+use crate::ui::dialogs::present_dialog_standalone;
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -42,27 +43,38 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             let mutex_cl = mutex_cl.clone();
 
             win.set_waiting(true);
-            login(move |session| {
-                store_session(&session.access_token, &session.refresh_token);
+            login(move |result| {
+                if let Err(err) = &result {
+                    present_dialog_standalone(err.title, &err.description);
+                    return;
+                }
+
+                let session = result.unwrap();
+                if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
+                    present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str());
+                }
 
                 let mut guard = mutex_cl.lock().unwrap();
                 let win = win_weak.upgrade().unwrap();
 
                 *guard = Some(session);
                 win.set_waiting(false);
-                win.hide();
+                let _ = win.hide();
             });
         });
 
         win.run()?; // Blocking call until the user is logged in.
-    }
 
+        // If the user closes the program without logging in.
+        if tokens.is_none() {
+            return Ok(());
+        }
+    }
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
 
     setup_callbacks(ui.as_weak(), s_mutex.clone());
     ui.set_groups(ModelRc::from(Rc::new(VecModel::from(vec![]))));
-
 
     if session.is_none() {
         let (access_token, refresh_token) = tokens.unwrap();
@@ -70,7 +82,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let mutex_cl = s_mutex.clone();
 
         login_existing(ui.as_weak(), access_token, refresh_token, move |session| {
-            store_session(&session.access_token, &session.refresh_token);
+            if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
+                present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str());
+            }
 
             let mut guard = mutex_cl.lock().unwrap();
             let ui = ui_weak.upgrade().unwrap();

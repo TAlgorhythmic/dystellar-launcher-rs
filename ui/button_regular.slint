@@ -2,8 +2,6 @@ export component ButtonRegular inherits Rectangle {
 	callback on_click;
 
 	in-out property <bool> primary: false;
-	in-out property <length> initial-width: 100px;
-	in-out property <length> initial-height: 30px;
 
 	background: area.has-hover ? (primary ? #007965 : #989898) : (primary ? #006857 : #848484);
 	border-width: 1px;
@@ -14,14 +12,10 @@ export component ButtonRegular inherits Rectangle {
 		clicked => { on_click(); }
 	}
 
-	animate width { duration: area.pressed ? 60ms : 250ms; easing: ease-in-out; }
-	animate height { duration: area.pressed ? 60ms : 250ms; easing: ease-in-out; }
-	animate opacity { duration: area.pressed ? 60ms : 250ms; easing: ease-in-out; }
+	animate opacity { duration: 100ms; easing: ease-in-out; }
 	animate background { duration: 250ms; easing: ease-in-out; }
 
-	width: area.pressed ? initial-width : initial-width - 6px;
-	height: area.pressed ? initial-height : initial-height - 6px;
-	opacity: area.pressed ? 0.6 : 1.0;
+	opacity: area.pressed ? 0.35 : 1.0;
 
 	@children
 }

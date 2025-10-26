@@ -6,7 +6,7 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::{control::database::store_session, typedef::ms_session::MicrosoftSession}, generated::{AppState, DialogSeverity, Main}, logic::safe, ui::dialogs::{present_dialog, present_dialog_standalone}};
+use crate::{api::typedef::ms_session::{ErrorData, MicrosoftSession}, logic::safe};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -36,24 +36,19 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
     Ok(res)
 }
 
-pub fn login_existing<F>(ui: Weak<Main>, access_token: Box<str>, refresh_token: Box<str>, f: F)
+pub fn login_existing<F>(access_token: Box<str>, refresh_token: Box<str>, f: F)
 where
-    F: FnOnce(MicrosoftSession) + Send + 'static
+    F: FnOnce(Result<MicrosoftSession, Box<dyn Error>>) + Send + 'static
 {
     thread::spawn(move || {
         let result = post(format!("/api/microsoft/login_existing").as_str(), object! {
             access_token: access_token.as_ref(), refresh_token: refresh_token.as_ref()
         });
 
-        let ui = ui;
-
         if let Err(err) = &result {
             let err_str = format!("Failed to login: {}", err.to_string());
 
-            safe({
-                let ui_owned = ui.clone();
-                move || { present_dialog(&ui_owned.upgrade().unwrap(), &err_str, DialogSeverity::Error); }
-            });
+            safe(move || f(Err(err_str.into())));
             return;
         }
 
@@ -65,28 +60,23 @@ where
         let refresh_token_opt: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
 
         if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
-            safe(move || {
-                let ui_owned = ui.upgrade().unwrap();
-
-                present_dialog(&ui_owned, "Failed to process session: Malformed or incomplete data, please contact support.", DialogSeverity::Error);
-                ui_owned.set_app_state(AppState::SessionError);
-            });
+            safe(move || f(Err("Failed to process session: Malformed or incomplete data, please contact support.".into())));
             return;
         }
 
-        safe(move || f(MicrosoftSession {
+        safe(move || f(Ok(MicrosoftSession {
             uuid: uuid_opt.unwrap(),
             username: "TODO?".into(),
             access_token: access_token_opt.unwrap(),
             refresh_token: refresh_token_opt.unwrap(),
             minecraft_token: mc_token_opt.unwrap()
-        }));
+        })));
     });
 }
 
 fn poll_uuid<F>(uuid: Uuid, callback: F)
 where
-    F: Fn(MicrosoftSession) + Send + 'static
+    F: Fn(Result<MicrosoftSession, ErrorData>) + Send + 'static
 {
     thread::spawn(move || {
         let callback_url = format!("{BACKEND_URL}/api/microsoft/callback");
@@ -96,11 +86,13 @@ where
         if let Err(err) = webbrowser::open(&ms_url) {
             let err_str = format!("Failed to open browser: {}", err.to_string());
 
-            safe(move || present_dialog_standalone("System Error", err_str.as_str()));
+            safe(move || callback(Err(ErrorData { title: "System Error", description: err_str.into() })));
             return;
         }
 
         loop {
+            thread::sleep(Duration::from_millis(1500));
+
             let login_url = format!("/api/microsoft/login?uuid={uuid_str}");
 
             let res = get(login_url.as_str());
@@ -108,7 +100,7 @@ where
             if let Err(err) = &res {
                 let str_err = err.to_string();
 
-                safe(move || present_dialog_standalone("Fatal Error", format!("Failed to check login status: {str_err} \nIs your internet down?").as_str()));
+                safe(move || callback(Err(ErrorData { title: "Fatal Error", description: format!("Failed to check login status: {str_err} \nIs your internet down?").into() })));
                 break;
             }
 
@@ -119,7 +111,7 @@ where
                 let body_err_msg: Box<str> = body_res["error"].as_str().unwrap_or("Cannot provide error message").into();
                 let err_str = format!("Login failed: {}. Please contact support.", body_err_msg);
 
-                safe(move || present_dialog_standalone("Server Error", err_str.as_str()));
+                safe(move || callback(Err(ErrorData { title: "Server Error", description: err_str.into() })));
                 break;
             }
 
@@ -133,7 +125,7 @@ where
             let refresh_token_opt = body_res["refresh_token"].as_str();
 
             if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
-                safe(|| present_dialog_standalone("Session Error", "Data received from server is incomplete.\nPlease contact support."));
+                safe(move || callback(Err(ErrorData { title: "Session Error", description: "Data received from server is incomplete. Please contact support.".into() })));
                 break;
             }
             let session = MicrosoftSession {
@@ -143,12 +135,8 @@ where
                 refresh_token: refresh_token_opt.unwrap().into(),
                 minecraft_token: mc_token_opt.unwrap().into()
             };
-            if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
-                let err_str = format!("Failed to store session: {}\nYou'll need to login again when you restart the launcher.", err.to_string());
-                safe(move || present_dialog_standalone("System Error", err_str.as_str()));
-            }
 
-            callback(session);
+            callback(Ok(session));
 
             println!("Logged in");
         }
@@ -157,20 +145,20 @@ where
 
 pub fn login<F>(callback: F)
 where
-    F: Fn(MicrosoftSession) + Send + 'static
+    F: Fn(Result<MicrosoftSession, ErrorData>) + Send + 'static
 {
     let uuid = Uuid::new_v4();
     let uuid_str = uuid.to_string();
     let lsopt = post("/api/microsoft/loginsession", object! { uuid: uuid_str });
 
     if lsopt.is_err() {
-        present_dialog_standalone("Connection Error", "Error connecting to server, please check your internet connection.");
+        callback(Err(ErrorData { title: "Connection Error", description: "Error connecting to server, please check your internet connection.".into() }));
         return;
     }
 
     let lsession_res = lsopt.unwrap();
     if !lsession_res["ok"].as_bool().unwrap_or(false) {
-        present_dialog_standalone("Server Error", format!("An unexpected error occured: {}\nplease try again later.\nSorry for the inconvenience.", lsession_res["error"].as_str().unwrap_or("Unknown Error")).as_str());
+        callback(Err(ErrorData { title: "Server Error", description: format!("An unexpected error occured: {}\nplease try again later.\nSorry for the inconvenience.", lsession_res["error"].as_str().unwrap_or("Unknown Error")).into() }));
         return;
     }
 
