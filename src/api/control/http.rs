@@ -136,9 +136,10 @@ where
                 minecraft_token: mc_token_opt.unwrap().into()
             };
 
-            callback(Ok(session));
+            safe(move || callback(Ok(session)));
 
             println!("Logged in");
+            break;
         }
     });
 }

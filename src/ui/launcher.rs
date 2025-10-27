@@ -39,11 +39,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         win.on_login(move || {
             let win = win_weak.upgrade().unwrap();
-            let win_weak = win_weak.clone();
+            let win_weak = win.as_weak();
             let mutex_cl = mutex_cl.clone();
 
             win.set_waiting(true);
             login(move |result| {
+                let win = win_weak.upgrade().unwrap();
+
+                win.set_waiting(false);
                 if let Err(err) = &result {
                     present_dialog_standalone(err.title, &err.description);
                     return;
@@ -55,10 +58,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 }
 
                 let mut guard = mutex_cl.lock().unwrap();
-                let win = win_weak.upgrade().unwrap();
 
                 *guard = Some(session);
-                win.set_waiting(false);
                 let _ = win.hide();
             });
         });
@@ -66,9 +67,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         win.run()?; // Blocking call until the user is logged in.
 
         // If the user closes the program without logging in.
-        if tokens.is_none() {
+        let session = s_mutex.lock().unwrap();
+        if session.is_none() {
             return Ok(());
         }
+        drop(session);
     }
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
