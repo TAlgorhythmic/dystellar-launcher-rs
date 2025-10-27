@@ -3,11 +3,16 @@ export component Infoholder inherits Rectangle {
 	border-radius: 18px;
 	border-width: 1px;
 	border-color: #434343;
+	height: 54px;
 
-	HorizontalLayout {
+	VerticalLayout {
 		alignment: center;
-		spacing: 16px;
+		HorizontalLayout {
+			padding: 12px;
+			alignment: center;
+			spacing: 16px;
 
-		@children
+			@children
+		}
 	}
 }

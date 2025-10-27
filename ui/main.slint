@@ -3,12 +3,7 @@ import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.sli
 import { TasksGroup, TaskData, TaskState, TaskType } from "typedef/type.slint";
 import { ButtonRegular } from "button_regular.slint";
 import { TaskManager } from "task_manager.slint";
-import "assets/fonts/Orbitron-Black.ttf";
-import "assets/fonts/Orbitron-Bold.ttf";
-import "assets/fonts/Orbitron-ExtraBold.ttf";
-import "assets/fonts/Orbitron-Medium.ttf";
-import "assets/fonts/Orbitron-Regular.ttf";
-import "assets/fonts/Orbitron-SemiBold.ttf";
+import "assets/fonts/Orbitron-VariableFont_wght.ttf";
 
 export enum AppState {
 	loading,
@@ -28,7 +23,8 @@ export component Main inherits Window {
 	}
 
 	default-font-family: "Orbitron";
-	default-font-size: 22px;
+	default-font-size: 16px;
+	default-font-weight: 0;
 
 	width: 1280px;
 	height: 720px;
@@ -73,32 +69,25 @@ export component Main inherits Window {
 			easing: ease-in-out;
 			duration: 200ms;
 		}
-
 		Rectangle {
 			border-width: 1px;
 			border-radius: 42px;
 			border-color: rgba(0, 0, 0, 0.2);
 			drop-shadow-blur: 8px;
-
 			VerticalLayout {
 				spacing: 20px;
 				alignment: space-around;
-
 				HorizontalLayout {
 					alignment: start;
-
 					Image {
 						width: 50px;
 						height: 50px;
 						source: root.dialog-data.severity == DialogSeverity.info ? @image-url("assets/icons/info.svg") : @image-url("assets/icons/error.svg");
 					}
-					Text {
-						text: dialog-data.content;
-					}
+					Text { text: dialog-data.content; }
 				}
 				HorizontalLayout {
 					alignment: end;
-
 					ButtonRegular {
 						visible: dialog-data.type == DialogType.confirmation;
 						primary: false;
@@ -125,10 +114,8 @@ export component Main inherits Window {
 	VerticalLayout {
 		horizontal-stretch: 1.0;
 		vertical-stretch: 1.0;
-
 		VerticalLayout {
 			padding: 28px;
-
 			Subheader {}
 		}
 	}

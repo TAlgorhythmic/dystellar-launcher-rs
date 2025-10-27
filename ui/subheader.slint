@@ -7,7 +7,12 @@ export component Subheader inherits HorizontalLayout {
 		ButtonGrowable {
 			IconImage {
 				source: @image-url("assets/icons/settings.svg");
-				image-fit: contain;
+			}
+		}
+		ButtonGrowable {
+			width: store.width;
+			store := Text {
+				text: "Store";
 			}
 		}
 	}

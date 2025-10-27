@@ -18,7 +18,7 @@ mod generated {
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let res = ui::launcher::run();
-    
+
     if let Err(err) = res {
         let dialog = FallbackDialog::new()?;
 
