@@ -12,10 +12,20 @@ export component ButtonRegular inherits Rectangle {
 		clicked => { on_click(); }
 	}
 
-	animate opacity { duration: 100ms; easing: ease-in-out; }
+	states [
+	    press when area.pressed : {
+			opacity: 0.35;
+			in {
+				animate opacity { duration: 80ms; easing: ease-in-out; }
+			}
+			out {
+				animate opacity { duration: 240ms; easing: ease-in-out; }
+			}
+		}
+	]
 	animate background { duration: 250ms; easing: ease-in-out; }
 
-	opacity: area.pressed ? 0.35 : 1.0;
+	opacity: 1.0;
 
 	@children
 }

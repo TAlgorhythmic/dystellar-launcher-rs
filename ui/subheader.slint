@@ -3,25 +3,21 @@ import { ButtonGrowable } from "button_growable.slint";
 import { IconImage } from "icon_image.slint";
 
 export component Subheader inherits HorizontalLayout {
+	alignment: space-between;
 	Infoholder {
 		ButtonGrowable {
-			IconImage {
-				source: @image-url("assets/icons/settings.svg");
-			}
+			IconImage { source: @image-url("assets/icons/settings.svg"); }
 		}
 		ButtonGrowable {
-			width: store.width;
-			store := Text {
-				text: "Store";
-			}
+			Text { text: "Store"; }
+		}
+		ButtonGrowable {
+			Text { text: "ToS"; }
 		}
 	}
-
-	Rectangle {
-		horizontal-stretch: 1.0;
-	}
-
 	Infoholder {
-
+		ButtonGrowable {
+			IconImage { source: @image-url("assets/icons/info.svg"); }
+		}
 	}
 }
