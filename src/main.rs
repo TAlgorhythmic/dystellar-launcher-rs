@@ -4,7 +4,7 @@ use std::error::Error;
 
 use slint::ComponentHandle;
 
-use crate::generated::FallbackDialog;
+use crate::generated::{DialogData, DialogSeverity, DialogType, FallbackDialog};
 
 mod ui;
 mod api;
@@ -22,7 +22,12 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Err(err) = res {
         let dialog = FallbackDialog::new()?;
 
-        dialog.set_text(format!("Failed to initialize: {}", err.to_string()).into());
+        dialog.set_dialog_data(DialogData {
+            content: format!("Failed to initialize: {}", err.to_string()).into(),
+            r#type: DialogType::Basic,
+            severity: DialogSeverity::Error
+        });
+        dialog.set_name("Platform Error".into());
         dialog.on_close({
             let dialog = dialog.clone_strong();
             move || { let _ = dialog.hide(); }

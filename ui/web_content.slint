@@ -60,7 +60,7 @@ export component WebContent inherits Rectangle {
 	area := TouchArea {}
 	GridLayout {
 		prev := NavButton {
-			visible: area.has-hover || self.hovered || next.hovered;
+			opacity: 0.0;
 			col: 0;
 			row: 0;
 			img: @image-url("assets/icons/previous.png");
@@ -70,6 +70,14 @@ export component WebContent inherits Rectangle {
 					actual = content.length - 1;
 				}
 			}
+			states [
+				hover when area.has-hover || self.hovered || next.hovered : {
+					opacity: 1.0;
+					in-out {
+						animate opacity { duration: 160ms; easing: ease-in-out; }
+					}
+				}
+			]
 		}
 		Rectangle {
 			for item[index] in content : Rectangle {
@@ -87,7 +95,7 @@ export component WebContent inherits Rectangle {
 			if content.length == 0 : CleanSpinner { size: 64px; }
 		}
 		next := NavButton {
-			visible: area.has-hover || self.hovered || prev.hovered;
+			opacity: 0.0;
 			col: 2;
 			row: 0;
 			img: @image-url("assets/icons/next.png");
@@ -97,6 +105,14 @@ export component WebContent inherits Rectangle {
 					actual = 0;
 				}
 			}
+			states [
+				hover when area.has-hover || self.hovered || prev.hovered : {
+					opacity: 1.0;
+					in-out {
+						animate opacity { duration: 160ms; easing: ease-in-out; }
+					}
+				}
+			]
 		}
 	}
 }

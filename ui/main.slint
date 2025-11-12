@@ -1,5 +1,4 @@
 import { Subheader } from "subheader.slint";
-import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.slint";
 import { TasksGroup, TaskData, TaskState, TaskType, Content } from "typedef/type.slint";
 import { ButtonRegular } from "button_regular.slint";
 import { TaskManager } from "task_manager.slint";
@@ -48,15 +47,6 @@ component Socials {
 }
 
 export component Main inherits Window {
-	public function hide_popup() {
-		dialog-data.shown = false;
-	    popup.close();
-	}
-
-	public function show_popup() {
-	    popup.show();
-	}
-
 	default-font-family: "Orbitron";
 	default-font-size: 17px;
 
@@ -67,12 +57,8 @@ export component Main inherits Window {
 	title: "Dystellar Launcher";
 
 	in-out property <[TasksGroup]> groups: [];
-	in-out property <float> total_task_progress: 0.0;
-	callback cancel_tasks();
 
-	in-out property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, content: "" };
 	in-out property<AppState> app_state: loading;
-	callback dialog_confirmed();
 
 	in-out property <[Content]> events: [];
 	in-out property <[Content]> updates: [];
@@ -92,61 +78,6 @@ export component Main inherits Window {
 		}
 	}
 
-	// Dialog
-	popup := PopupWindow {
-		close-policy: no-auto-close;
-		visible: root.dialog-data.shown;
-		opacity: root.dialog-data.shown ? 1.0 : 0.0;
-		width: 400px;
-		min-height: 180px;
-		x: (parent.width - self.width) / 2;
-		y: (parent.height - self.height) / 2 - (root.dialog-data.shown ? 0 : 20px);
-
-		animate opacity, y {
-			easing: ease-in-out;
-			duration: 200ms;
-		}
-		Rectangle {
-			border-width: 1px;
-			border-radius: 42px;
-			border-color: rgba(0, 0, 0, 0.2);
-			drop-shadow-blur: 8px;
-			VerticalLayout {
-				spacing: 20px;
-				alignment: space-around;
-				HorizontalLayout {
-					alignment: start;
-					Image {
-						width: 50px;
-						height: 50px;
-						source: root.dialog-data.severity == DialogSeverity.info ? @image-url("assets/icons/info.svg") : @image-url("assets/icons/error.svg");
-					}
-					Text { text: dialog-data.content; }
-				}
-				HorizontalLayout {
-					alignment: end;
-					ButtonRegular {
-						visible: dialog-data.type == DialogType.confirmation;
-						primary: false;
-						on_click => { hide_popup() }
-						Text { text: "Cancel"; }
-					}
-					ButtonRegular {
-						primary: true;
-						on_click => {
-							hide_popup();
-
-							if (dialog-data.type == DialogType.confirmation) {
-								dialog_confirmed();
-							}
-						}
-						Text { text: dialog-data.type == DialogType.confirmation ? "Proceed" : "Ok"; }
-					}
-				}
-			}
-		}
-	}
-
 	// Main window content
 	VerticalLayout {
 		width: 100%;
@@ -157,16 +88,19 @@ export component Main inherits Window {
 		Subheader {}
 		HorizontalLayout {
 			vertical-stretch: 1.0;
+
 			spacing: 18px;
-			WebContent { content: updates; }
+			WebContent { horizontal-stretch: 1.0; content: updates; }
 			Rectangle {
+				horizontal-stretch: 1.0;
 				ButtonRegular {
 					primary: true;
+					width: 90%;
 					height: 80px;
 					Text { text: "Loading..."; font-size: 32px; }
 				}
 			}
-			WebContent { content: events; }
+			WebContent { horizontal-stretch: 1.0; content: events; }
 		}
 		HorizontalLayout {
 			alignment: space-between;
@@ -182,4 +116,5 @@ export global Callbacks {
     callback click_discord();
     callback click_youtube();
     callback click_x();
+	callback cancel_tasks();
 }

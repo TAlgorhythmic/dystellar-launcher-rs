@@ -1,6 +1,5 @@
 import { ButtonRegular } from "button_regular.slint";
-
-export enum FallbackDialogType { basic, confirmation }
+import { DialogData, DialogType, DialogSeverity } from "typedef/dialog_utils.slint";
 
 export component FallbackDialog inherits Window {
 	in property <string> name;
@@ -10,10 +9,10 @@ export component FallbackDialog inherits Window {
 	always-on-top: true;
 	default-font-size: 20px;
 
+	in-out property<DialogData> dialog-data: { shown: false, type: DialogType.basic, severity: DialogSeverity.info, content: "" };
+
 	callback close();
 	callback confirm();
-	in-out property <string> text;
-	in-out property <FallbackDialogType> type;
 
 	Rectangle {
 	   VerticalLayout {
@@ -24,16 +23,13 @@ export component FallbackDialog inherits Window {
 				Image {
 					width: 50px;
 					height: 50px;
-					source: type == FallbackDialogType.basic ? @image-url("assets/icons/error.svg") : @image-url("assets/icons/info.svg");
+					source: root.dialog-data.severity == DialogSeverity.info ? @image-url("assets/icons/info.svg") : @image-url("assets/icons/error.svg");
 				}
-				Text {
-					text: root.text;
-				}
+				Text { text: dialog-data.content; }
 			}
 			HorizontalLayout {
 				alignment: end;
-				ButtonRegular {
-					visible: type == FallbackDialogType.confirmation;
+				if dialog-data.type == DialogType.confirmation : ButtonRegular {
 					primary: false;
 					on_click => { close() }
 					Text { text: "Cancel"; }
@@ -43,11 +39,11 @@ export component FallbackDialog inherits Window {
 					on_click => {
 						close();
 
-						if (type == FallbackDialogType.confirmation) {
+						if (root.dialog-data.type == DialogType.confirmation) {
 							confirm();
 						}
 					}
-					Text { text: type == FallbackDialogType.confirmation ? "Proceed" : "Ok"; }
+					Text { text: root.dialog-data.type == DialogType.confirmation ? "Proceed" : "Ok"; }
 				}
 			}
 		}
