@@ -11,12 +11,16 @@ component NavButton inherits Rectangle {
 	callback on_click;
 
     Rectangle {
-		background: area.has-hover ? rgba(255, 255, 255, 0.2) : rgba(0, 0, 0, 0);
+		background: area.has-hover ? rgba(255, 255, 255, 0.1) : rgba(0, 0, 0, 0);
 		border-width: 0px;
 		clip: false;
 		width: 100%;
 		height: 100%;
 		opacity: 1.0;
+		border-bottom-left-radius: parent.border-bottom-left-radius;
+		border-top-right-radius: parent.border-top-right-radius;
+		border-bottom-right-radius: parent.border-bottom-right-radius;
+		border-top-left-radius: parent.border-top-left-radius;
 
 		area := TouchArea {
 			clicked => { on_click(); }
@@ -63,6 +67,8 @@ export component WebContent inherits Rectangle {
 			opacity: 0.0;
 			col: 0;
 			row: 0;
+			border-bottom-left-radius: 18px;
+			border-top-left-radius: 18px;
 			img: @image-url("assets/icons/previous.png");
 			on_click => {
 				actual -= 1;
@@ -98,6 +104,8 @@ export component WebContent inherits Rectangle {
 			opacity: 0.0;
 			col: 2;
 			row: 0;
+			border-bottom-right-radius: 18px;
+			border-top-right-radius: 18px;
 			img: @image-url("assets/icons/next.png");
 			on_click => {
 				actual += 1;

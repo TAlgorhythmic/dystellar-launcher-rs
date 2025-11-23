@@ -1,0 +1,18 @@
+export component ModsButton inherits Rectangle {
+	callback on_click;
+
+	background: area.pressed ? rgba(0, 141, 102, 0.4) : area.has-hover ? rgba(0, 141, 102, 0.25) : rgba(0, 0, 0, 0.2);
+	border-width: 1px;
+	border-color: rgb(0, 141, 102);
+	border-radius: 13px;
+
+	area := TouchArea {
+		clicked => { on_click(); }
+	}
+
+	animate background { duration: 90ms; easing: ease-in-out; }
+
+	opacity: 1.0;
+
+	@children
+}

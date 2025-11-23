@@ -1,6 +1,6 @@
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, TasksGroup, WelcomeUI};
 use crate::logic::{open_discord, open_youtube};
-use crate::ui::dialogs::{present_dialog, present_dialog_standalone};
+use crate::ui::dialogs::present_dialog_standalone;
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -14,18 +14,9 @@ fn setup_callbacks(ui: Weak<Main>, session: Arc<Mutex<Option<MicrosoftSession>>>
     let ui_strong = ui.upgrade().unwrap();
     let callbacks = ui_strong.global::<Callbacks>();
 
-    callbacks.on_click_x({
-        let ui = ui.clone();
-        move || open_x(&ui.upgrade().unwrap())
-    });
-    callbacks.on_click_discord({
-        let ui = ui.clone();
-        move || open_discord(&ui.upgrade().unwrap())
-    });
-    callbacks.on_click_youtube({
-        let ui = ui.clone();
-        move || open_youtube(&ui.upgrade().unwrap())
-    });
+    callbacks.on_click_x(move || open_x());
+    callbacks.on_click_discord(move || open_discord());
+    callbacks.on_click_youtube(move || open_youtube());
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -48,13 +39,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
                 win.set_waiting(false);
                 if let Err(err) = &result {
-                    present_dialog_standalone(err.title, &err.description);
+                    present_dialog_standalone(err.title, &err.description, DialogSeverity::Error);
                     return;
                 }
 
                 let session = result.unwrap();
                 if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
-                    present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str());
+                    present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str(), DialogSeverity::Error);
                 }
 
                 let mut guard = mutex_cl.lock().unwrap();
@@ -86,14 +77,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         login_existing(access_token, refresh_token, move |result| {
             if let Err(err) = &result {
-                present_dialog(&ui_weak.upgrade().unwrap(), &err.to_string(), DialogSeverity::Error);
+                present_dialog_standalone("Login Error".into(), &err.to_string(), DialogSeverity::Error);
                 return;
             }
 
             let session = result.unwrap();
 
             if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
-                present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str());
+                present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str(), DialogSeverity::Error);
             }
 
             let mut guard = mutex_cl.lock().unwrap();

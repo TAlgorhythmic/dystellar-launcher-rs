@@ -6,6 +6,7 @@ import { WebContent } from "web_content.slint";
 import { Infoholder } from "infoholder.slint";
 import { ButtonGrowable } from "button_growable.slint";
 import { IconImage } from "icon_image.slint";
+import { ModsButton } from "mods_btn.slint";
 import "assets/fonts/Orbitron-Regular.ttf";
 import "assets/fonts/Orbitron-Bold.ttf";
 import "assets/fonts/Orbitron-ExtraBold.ttf";
@@ -88,19 +89,30 @@ export component Main inherits Window {
 		Subheader {}
 		HorizontalLayout {
 			vertical-stretch: 1.0;
-
 			spacing: 18px;
-			WebContent { horizontal-stretch: 1.0; content: updates; }
+			WebContent { horizontal-stretch: 0.33; content: updates; }
 			Rectangle {
-				horizontal-stretch: 1.0;
-				ButtonRegular {
-					primary: true;
-					width: 90%;
-					height: 80px;
-					Text { text: "Loading..."; font-size: 32px; }
+				horizontal-stretch: 0.33;
+				VerticalLayout {
+					alignment: center;
+					spacing: 12px;
+					ButtonRegular {
+						primary: true;
+						height: 80px;
+						Text { text: "Loading..."; font-size: 32px; }
+					}
+					HorizontalLayout {
+						alignment: center;
+						ModsButton {
+							width: 80%;
+							height: 40px;
+							Text { text: "Mods"; }
+						}
+					}
+
 				}
 			}
-			WebContent { horizontal-stretch: 1.0; content: events; }
+			WebContent { horizontal-stretch: 0.33; content: events; }
 		}
 		HorizontalLayout {
 			alignment: space-between;
@@ -117,4 +129,6 @@ export global Callbacks {
     callback click_youtube();
     callback click_x();
 	callback cancel_tasks();
+	callback show_mods();
+	callback launch();
 }
