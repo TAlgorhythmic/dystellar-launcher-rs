@@ -1,9 +1,9 @@
-use crate::generated::{AppState, Callbacks, DialogSeverity, Main, TasksGroup, WelcomeUI};
+use crate::generated::{AppState, Callbacks, DialogSeverity, Main, WelcomeUI};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::present_dialog_standalone;
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
-use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
+use slint::{ComponentHandle, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
 use std::rc::Rc;
@@ -17,6 +17,9 @@ fn setup_callbacks(ui: Weak<Main>, session: Arc<Mutex<Option<MicrosoftSession>>>
     callbacks.on_click_x(move || open_x());
     callbacks.on_click_discord(move || open_discord());
     callbacks.on_click_youtube(move || open_youtube());
+    callbacks.on_show_mods(|| {
+        
+    });
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {

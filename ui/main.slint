@@ -57,12 +57,12 @@ export component Main inherits Window {
 	full-screen: false;
 	title: "Dystellar Launcher";
 
-	in-out property <[TasksGroup]> groups: [];
+	in-out property<[TasksGroup]> groups: [];
 
 	in-out property<AppState> app_state: loading;
 
-	in-out property <[Content]> events: [];
-	in-out property <[Content]> updates: [];
+	in-out property<[Content]> events: [];
+	in-out property<[Content]> updates: [];
 
 	TaskManager {
 		groups: parent.groups;
@@ -90,9 +90,9 @@ export component Main inherits Window {
 		HorizontalLayout {
 			vertical-stretch: 1.0;
 			spacing: 18px;
-			WebContent { horizontal-stretch: 0.33; content: updates; }
+			WebContent { horizontal-stretch: 1.0 / 3.0; content: updates; }
 			Rectangle {
-				horizontal-stretch: 0.33;
+				horizontal-stretch: 1.0 / 3.0;
 				VerticalLayout {
 					alignment: center;
 					spacing: 12px;
@@ -112,7 +112,7 @@ export component Main inherits Window {
 
 				}
 			}
-			WebContent { horizontal-stretch: 0.33; content: events; }
+			WebContent { horizontal-stretch: 1.0 / 3.0; content: events; }
 		}
 		HorizontalLayout {
 			alignment: space-between;

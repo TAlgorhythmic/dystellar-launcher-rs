@@ -1,0 +1,114 @@
+import { Container } from "container.slint";
+import { CleanSpinner } from "clean_spinner.slint";
+import "assets/fonts/Orbitron-Regular.ttf";
+import "assets/fonts/Orbitron-Bold.ttf";
+import "assets/fonts/Orbitron-ExtraBold.ttf";
+import "assets/fonts/Orbitron-Medium.ttf";
+import "assets/fonts/Orbitron-Black.ttf";
+import "assets/fonts/Orbitron-SemiBold.ttf";
+import { ButtonRegular } from "button_regular.slint";
+
+export struct Mod {
+	name: string,
+	description: string,
+	version: string,
+	enabled: bool,
+	default: bool,
+	author: string,
+	url: string,
+	image: image,
+	loading: bool
+}
+
+component ModInfo inherits PopupWindow {
+    
+}
+
+component ModCard inherits Container {
+	callback on_click();
+    in-out property <Mod> mod;
+
+	background: area.pressed ? rgba(0, 0, 0, 0.1) : area.has-hover ? rgba(255, 255, 255, 0.19) : rgba(255, 255, 255, 0.09);
+	width: 100%;
+	height: 128px;
+	area := TouchArea {
+		clicked => { on_click() }
+	}
+
+	HorizontalLayout {
+		alignment: space-between;
+		VerticalLayout { alignment: center; Rectangle {
+			height: 100%;
+			width: self.height;
+			clip: true;
+			border-radius: 12px;
+			drop-shadow-color: black;
+			drop-shadow-offset-y: 2px;
+			drop-shadow-blur: 4px;
+			if root.mod.loading : CleanSpinner {
+				size: parent.width * 0.6;
+				x: (parent.width - self.size) / 2;
+				y: (parent.height - self.size) / 2;
+			}
+			Image {
+				source: root.mod.image;
+				width: 100%;
+				height: 100%;
+				image-fit: cover;
+			}
+		}}
+	}
+}
+
+export component ModsUI inherits Window {
+    default-font-family: "Orbitron";
+	default-font-size: 17px;
+
+	callback close();
+	callback mod_click(mod: Mod);
+	callback mod_toggle(mod: Mod);
+
+	in-out property <[Mod]> mods;
+	in-out property <bool> loading: true;
+
+	in-out property <Mod> selected;
+	in-out property <bool> shown;
+
+	width: 660px;
+	height: 640px;
+	background: #363636;
+	full-screen: false;
+	title: "Optional Mods Selection";
+
+	CleanSpinner {
+		spinning: loading;
+		size: 128px;
+		opacity: loading ? 1 : 0;
+		x: (root.width - self.size) / 2;
+		y: (root.height - self.size) / 2;
+
+		animate opacity { duration: 230ms; easing: ease-in-out; }
+	}
+
+	VerticalLayout {
+		padding: 6px;
+		spacing: 6px;
+		Flickable {
+			height: 80%;
+			viewport-height: self.height;
+			for mod in root.mods : ModCard { mod: mod; }
+		}
+		HorizontalLayout {
+			height: 20%;
+			alignment: end;
+			padding-right: 26px;
+			ButtonRegular {
+				height: 40px;
+				width: 400px;
+				primary: true;
+				Text { text: "Done"; }
+				on_click => { root.close() }
+			}
+		}
+	}
+}

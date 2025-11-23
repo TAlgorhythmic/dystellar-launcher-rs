@@ -67,8 +67,8 @@ export component WebContent inherits Rectangle {
 			opacity: 0.0;
 			col: 0;
 			row: 0;
-			border-bottom-left-radius: 18px;
-			border-top-left-radius: 18px;
+			border-bottom-left-radius: root.border-radius;
+			border-top-left-radius: root.border-radius;
 			img: @image-url("assets/icons/previous.png");
 			on_click => {
 				actual -= 1;
@@ -104,8 +104,8 @@ export component WebContent inherits Rectangle {
 			opacity: 0.0;
 			col: 2;
 			row: 0;
-			border-bottom-right-radius: 18px;
-			border-top-right-radius: 18px;
+			border-bottom-right-radius: root.border-radius;
+			border-top-right-radius: root.border-radius;
 			img: @image-url("assets/icons/next.png");
 			on_click => {
 				actual += 1;

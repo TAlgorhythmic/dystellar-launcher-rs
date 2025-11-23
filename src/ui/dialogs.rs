@@ -28,7 +28,7 @@ where F: Fn() + Send + Sync + 'static {
         let ui = ui.clone_strong();
         move || {
             exec();
-            ui.hide();
+            let _ = ui.hide();
         }
     });
     let _ = ui.show();
