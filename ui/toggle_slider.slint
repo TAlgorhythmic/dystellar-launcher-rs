@@ -1,0 +1,17 @@
+export component ToggleSlider inherits Rectangle {
+    in-out property <bool> enabled: false;
+
+	width: 60px;
+	height: 20px;
+	background: enabled ? #006857 : rgba(0, 0, 0, 0.2);
+	animate background { duration: 250ms; easing: ease-in-out; }
+	Rectangle {
+		width: 20px;
+		height: 20px;
+		x: enabled ? (parent.width - self.width) : 0px;
+		y: 0px;
+		background: white;
+		border-color: #E4E4E4;
+		animate x { duration: 250ms; easing: ease-in-out; }
+	}
+}

@@ -21,7 +21,7 @@ export struct Mod {
 }
 
 component ModInfo inherits PopupWindow {
-    
+    in-out property <Mod> mod;
 }
 
 component ModCard inherits Container {
@@ -55,6 +55,16 @@ component ModCard inherits Container {
 				width: 100%;
 				height: 100%;
 				image-fit: cover;
+			}
+		}}
+		VerticalLayout { alignment: center; HorizontalLayout {
+			alignment: center;
+			spacing: 4px;
+			Text { text: mod.name; font-size: 24px; }
+			Text {
+				text: mod.version;
+				color: rgba(255, 255, 255, 0.3);
+				font-size: 14px;
 			}
 		}}
 	}
