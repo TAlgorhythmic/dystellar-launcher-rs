@@ -2,28 +2,13 @@ import { Container } from "container.slint";
 import { CleanSpinner } from "clean_spinner.slint";
 import { ButtonRegular } from "button_regular.slint";
 import { ToggleSlider } from "toggle_slider.slint";
+import { Mod } from "typedef/type.slint";
 import "assets/fonts/Orbitron-Regular.ttf";
 import "assets/fonts/Orbitron-Bold.ttf";
 import "assets/fonts/Orbitron-ExtraBold.ttf";
 import "assets/fonts/Orbitron-Medium.ttf";
 import "assets/fonts/Orbitron-Black.ttf";
 import "assets/fonts/Orbitron-SemiBold.ttf";
-
-export struct Mod {
-	name: string,
-	description: string,
-	version: string,
-	enabled: bool,
-	default: bool,
-	author: string,
-	url: string,
-	image: image,
-	loading: bool
-}
-
-component ModInfo inherits PopupWindow {
-    in-out property <Mod> mod;
-}
 
 component ModCard inherits Container {
 	callback on_click();

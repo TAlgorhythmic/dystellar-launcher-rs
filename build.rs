@@ -30,9 +30,11 @@ fn main() {
     let welcome_out = out_dir.join("welcome_ui.rs");
     let fallback_dialog_out = out_dir.join("fallback_dialog_ui.rs");
     let mods_out = out_dir.join("mods_ui.rs");
+    let modinfo_out = out_dir.join("modinfo_ui.rs");
 
     slint_build::compile_with_output_path("ui/main.slint", main_out, conf.clone()).unwrap();
     slint_build::compile_with_output_path("ui/welcome_ui.slint", welcome_out, conf.clone()).unwrap();
     slint_build::compile_with_output_path("ui/fallback_dialog.slint", fallback_dialog_out, conf.clone()).unwrap();
+    slint_build::compile_with_output_path("ui/modinfo_ui.slint", modinfo_out, conf.clone()).unwrap();
     slint_build::compile_with_output_path("ui/mods_ui.slint", mods_out, conf).unwrap();
 }
