@@ -1,12 +1,13 @@
 import { Container } from "container.slint";
 import { CleanSpinner } from "clean_spinner.slint";
+import { ButtonRegular } from "button_regular.slint";
+import { ToggleSlider } from "toggle_slider.slint";
 import "assets/fonts/Orbitron-Regular.ttf";
 import "assets/fonts/Orbitron-Bold.ttf";
 import "assets/fonts/Orbitron-ExtraBold.ttf";
 import "assets/fonts/Orbitron-Medium.ttf";
 import "assets/fonts/Orbitron-Black.ttf";
 import "assets/fonts/Orbitron-SemiBold.ttf";
-import { ButtonRegular } from "button_regular.slint";
 
 export struct Mod {
 	name: string,
@@ -26,6 +27,7 @@ component ModInfo inherits PopupWindow {
 
 component ModCard inherits Container {
 	callback on_click();
+	callback on_toggle();
     in-out property <Mod> mod;
 
 	background: area.pressed ? rgba(0, 0, 0, 0.1) : area.has-hover ? rgba(255, 255, 255, 0.19) : rgba(255, 255, 255, 0.09);
@@ -67,6 +69,7 @@ component ModCard inherits Container {
 				font-size: 14px;
 			}
 		}}
+		VerticalLayout { alignment: center; ToggleSlider { toggle => { on_toggle() } } }
 	}
 }
 
@@ -80,9 +83,6 @@ export component ModsUI inherits Window {
 
 	in-out property <[Mod]> mods;
 	in-out property <bool> loading: true;
-
-	in-out property <Mod> selected;
-	in-out property <bool> shown;
 
 	width: 660px;
 	height: 640px;
