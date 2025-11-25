@@ -9,6 +9,7 @@ export component ButtonRegular inherits Rectangle {
 	border-color: primary ? #25B39C : #959595;
 
 	area := TouchArea {
+		mouse-cursor: pointer;
 		clicked => { on_click(); }
 	}
 

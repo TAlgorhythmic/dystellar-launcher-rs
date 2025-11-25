@@ -61,7 +61,9 @@ export component Main inherits Window {
 
 	in-out property<AppState> app_state: loading;
 
+	in-out property <bool> events_loading: true;
 	in-out property<[Content]> events: [];
+	in-out property <bool> updates_loading: true;
 	in-out property<[Content]> updates: [];
 
 	TaskManager {
