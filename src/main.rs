@@ -11,9 +11,12 @@ mod api;
 mod logic;
 
 mod generated {
-    include!(concat!(env!("OUT_DIR"), "/main_ui.rs"));
+/*  include!(concat!(env!("OUT_DIR"), "/main_ui.rs"));
     include!(concat!(env!("OUT_DIR"), "/welcome_ui.rs"));
     include!(concat!(env!("OUT_DIR"), "/fallback_dialog_ui.rs"));
+    include!(concat!(env!("OUT_DIR"), "/modinfo_ui.rs"));
+    include!(concat!(env!("OUT_DIR"), "/mods_ui.rs"));*/
+    include!(concat!(env!("OUT_DIR"), "/app.rs"));
 }
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

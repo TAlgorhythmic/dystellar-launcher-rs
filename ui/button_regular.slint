@@ -3,10 +3,10 @@ export component ButtonRegular inherits Rectangle {
 
 	in-out property <bool> primary: false;
 
-	background: area.has-hover ? (primary ? #007965 : #989898) : (primary ? #006857 : #848484);
+	background: area.has-hover ? (primary ? #007965 : #757575) : (primary ? #006857 : #616161);
 	border-width: 1px;
 	border-radius: 1000px;
-	border-color: primary ? #25B39C : #707070;
+	border-color: primary ? #25B39C : #959595;
 
 	area := TouchArea {
 		clicked => { on_click(); }

@@ -15,15 +15,17 @@ component ModCard inherits Container {
 	callback on_toggle();
     in-out property <Mod> mod;
 
-	background: area.pressed ? rgba(0, 0, 0, 0.1) : area.has-hover ? rgba(255, 255, 255, 0.19) : rgba(255, 255, 255, 0.09);
+	background: area.pressed ? #353535 : area.has-hover ? #656565 : #515151;
 	width: 100%;
-	height: 128px;
+	height: 96px;
 	area := TouchArea {
 		clicked => { on_click() }
 	}
 
 	HorizontalLayout {
 		alignment: space-between;
+		padding: 12px;
+		height: 100%;
 		VerticalLayout { alignment: center; Rectangle {
 			height: 100%;
 			width: self.height;
@@ -39,8 +41,6 @@ component ModCard inherits Container {
 			}
 			Image {
 				source: root.mod.image;
-				width: 100%;
-				height: 100%;
 				image-fit: cover;
 			}
 		}}
@@ -87,22 +87,28 @@ export component ModsUI inherits Window {
 
 	VerticalLayout {
 		padding: 6px;
-		spacing: 6px;
+		spacing: 12px;
 		Flickable {
 			height: 80%;
-			viewport-height: self.height;
-			for mod in root.mods : ModCard { mod: mod; }
+			VerticalLayout {
+				alignment: start;
+				padding: 8px;
+				for mod in root.mods : ModCard { mod: mod; on_toggle => { mod_toggle(mod); } on_click => { mod_click(mod); } }
+			}
 		}
 		HorizontalLayout {
 			height: 20%;
 			alignment: end;
-			padding-right: 26px;
-			ButtonRegular {
-				height: 40px;
-				width: 400px;
-				primary: true;
-				Text { text: "Done"; }
-				on_click => { root.close() }
+			padding-right: 20px;
+			VerticalLayout {
+				alignment: center;
+				ButtonRegular {
+					height: 48px;
+					width: 150px;
+					primary: true;
+					Text { text: "Done"; }
+					on_click => { root.close() }
+				}
 			}
 		}
 	}

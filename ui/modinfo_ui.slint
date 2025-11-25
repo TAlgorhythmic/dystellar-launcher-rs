@@ -2,4 +2,9 @@ import { Mod } from "typedef/type.slint";
 
 export component ModInfo inherits Window {
     in-out property <Mod> mod;
+
+	title: "Mod Info: " + mod.name;
+
+	width: 720px;
+	height: 380px;
 }

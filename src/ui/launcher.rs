@@ -1,9 +1,9 @@
-use crate::generated::{AppState, Callbacks, DialogSeverity, Main, WelcomeUI};
+use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, WelcomeUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::present_dialog_standalone;
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
-use slint::{ComponentHandle, ModelRc, VecModel, Weak};
+use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
 use std::rc::Rc;
@@ -18,7 +18,24 @@ fn setup_callbacks(ui: Weak<Main>, session: Arc<Mutex<Option<MicrosoftSession>>>
     callbacks.on_click_discord(move || open_discord());
     callbacks.on_click_youtube(move || open_youtube());
     callbacks.on_show_mods(|| {
+        let mods_ui = ModsUI::new().unwrap();
+        let model: VecModel<Mod> = VecModel::default();
+
+        model.push(Mod { author: "Algorhythmics".into(), default: false, description: "Test".into(), enabled: false, image: Image::default(), loading: false, name: "Test".into(), url: "Test".into(), version: "1.0".into() });
+        let the_model = ModelRc::from(Rc::new(model).clone());
+        mods_ui.set_mods(the_model);
+
+        let cl = mods_ui.clone_strong();
+
+        mods_ui.on_close(move || cl.hide().unwrap());
+        mods_ui.on_mod_click(|r_mod| {
+            let modinf_ui = ModInfo::new().unwrap();
+
+            modinf_ui.set_mod(r_mod);
+            modinf_ui.show().unwrap();
+        });
         
+        mods_ui.show().unwrap();
     });
 }
 

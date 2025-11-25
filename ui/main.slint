@@ -97,9 +97,12 @@ export component Main inherits Window {
 					alignment: center;
 					spacing: 12px;
 					ButtonRegular {
-						primary: true;
+						primary: app_state == AppState.ready;
 						height: 80px;
-						Text { text: "Loading..."; font-size: 32px; }
+						Text {
+							font-size: 32px;
+							text: app_state == AppState.ready ? "Launch" : app_state == AppState.session-error || app_state == AppState.network-error ? "Error" : "Loading...";
+						}
 					}
 					HorizontalLayout {
 						alignment: center;
@@ -107,6 +110,7 @@ export component Main inherits Window {
 							width: 80%;
 							height: 40px;
 							Text { text: "Mods"; }
+							on_click => { Callbacks.show_mods() }
 						}
 					}
 
