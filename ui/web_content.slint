@@ -61,7 +61,9 @@ export component WebContent inherits Rectangle {
 	background: rgba(0, 0, 0, 0.3);
 	border-radius: 18px;
 	clip: true;
-	area := TouchArea {}
+	area := TouchArea {
+		mouse-cursor: pointer;
+	}
 	GridLayout {
 		prev := NavButton {
 			opacity: 0.0;

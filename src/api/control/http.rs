@@ -1,7 +1,6 @@
-use std::{error::Error, sync::LazyLock, thread, time::Duration};
+use std::{error::Error, path::PathBuf, sync::LazyLock, thread, time::Duration};
 
 use json::{object, stringify, JsonValue};
-use slint::Weak;
 use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
@@ -34,6 +33,10 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
     let res = json::parse(req.as_str())?;
 
     Ok(res)
+}
+
+pub fn download(url: &str, output: PathBuf) -> Result<(), Box<dyn Error>> {
+    Ok(())
 }
 
 pub fn login_existing<F>(access_token: Box<str>, refresh_token: Box<str>, f: F)
