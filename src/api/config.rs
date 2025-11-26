@@ -92,7 +92,14 @@ impl Config {
     }
 
     pub fn load(path: &str) -> Result<Self, Box<dyn Error>> {
-        todo!()
+        let conf: Config = if fs::exists(path)? { json::parse(fs::read_to_string(path)?.as_str())?.try_into()? } else {
+            let default = Config::default();
+            
+            default.save(path)?;
+            default
+        };
+
+        Ok(conf)
     }
 
     pub fn save(&self, path: &str) -> Result<(), Box<dyn Error>> {
