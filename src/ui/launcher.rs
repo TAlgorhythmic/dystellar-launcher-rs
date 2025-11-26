@@ -1,3 +1,5 @@
+use crate::api::config::Config;
+use crate::api::control::dir_provider::get_data_dir;
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, WelcomeUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::present_dialog_standalone;
@@ -10,7 +12,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;
 
-fn setup_callbacks(ui: Weak<Main>, session: Arc<Mutex<Option<MicrosoftSession>>>) {
+fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>) {
     let ui_strong = ui.upgrade().unwrap();
     let callbacks = ui_strong.global::<Callbacks>();
 
@@ -86,8 +88,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
+    let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
 
-    setup_callbacks(ui.as_weak(), s_mutex.clone());
+    setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone());
     ui.set_groups(ModelRc::from(Rc::new(VecModel::from(vec![]))));
 
     if session.is_none() {
@@ -96,8 +99,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let mutex_cl = s_mutex.clone();
 
         login_existing(access_token, refresh_token, move |result| {
+            let ui = ui_weak.upgrade().unwrap();
+
             if let Err(err) = &result {
                 present_dialog_standalone("Login Error".into(), &err.to_string(), DialogSeverity::Error);
+                ui.set_app_state(AppState::SessionError);
                 return;
             }
 
@@ -108,7 +114,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             }
 
             let mut guard = mutex_cl.lock().unwrap();
-            let ui = ui_weak.upgrade().unwrap();
 
             *guard = Some(session);
             ui.set_app_state(AppState::Ready);

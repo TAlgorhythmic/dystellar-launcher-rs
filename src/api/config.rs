@@ -25,15 +25,15 @@ impl FromStr for Size {
 }
 
 pub struct Config {
-    ram_allocation_mb: i32,
-    resolution: Size,
-    fullscreen: bool,
-    branch: Box<str>,
-    jvm_args: Box<str>,
-    close_on_launch: bool,
-    game_dir: Box<str>,
-    cache_dir: Box<str>,
-    jdk_dir: Box<str>
+    pub ram_allocation_mb: i32,
+    pub resolution: Size,
+    pub fullscreen: bool,
+    pub branch: Box<str>,
+    pub jvm_args: Box<str>,
+    pub close_on_launch: bool,
+    pub game_dir: Box<str>,
+    pub cache_dir: Box<str>,
+    pub jdk_dir: Box<str>
 }
 
 impl From<&Config> for JsonValue {
