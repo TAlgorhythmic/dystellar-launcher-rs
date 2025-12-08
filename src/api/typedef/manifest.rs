@@ -33,10 +33,34 @@ pub struct MinecraftManifest {
     pub main_class: Box<str>
 }
 
+impl TryFrom<JsonValue> for AssetIndex {
+    type Error = Box<dyn Error + Send + Sync>;
+
+    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
+
+impl TryFrom<JsonValue> for Download {
+    type Error = Box<dyn Error + Send + Sync>;
+
+    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
+
+impl TryFrom<JsonValue> for Library {
+    type Error = Box<dyn Error + Send + Sync>;
+
+    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
+
 impl TryFrom<JsonValue> for MinecraftManifest {
     type Error = Box<dyn Error + Send + Sync>;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        
+        todo!()
     }
 }
