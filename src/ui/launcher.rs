@@ -3,6 +3,7 @@ use crate::api::control::dir_provider::get_data_dir;
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, WelcomeUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::present_dialog_standalone;
+use crate::ui::launch::launch;
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
 use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
@@ -38,6 +39,10 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         });
         
         mods_ui.show().unwrap();
+    });
+    callbacks.on_launch({
+        let ui = ui_strong.clone_strong();
+        move || launch(ui.clone_strong(), |_| {})
     });
 }
 

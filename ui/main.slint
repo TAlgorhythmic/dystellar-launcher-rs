@@ -13,6 +13,7 @@ import "assets/fonts/Orbitron-ExtraBold.ttf";
 import "assets/fonts/Orbitron-Medium.ttf";
 import "assets/fonts/Orbitron-Black.ttf";
 import "assets/fonts/Orbitron-SemiBold.ttf";
+import { CleanSpinner } from "clean_spinner.slint";
 
 export enum AppState {
 	loading,
@@ -92,18 +93,27 @@ export component Main inherits Window {
 		HorizontalLayout {
 			vertical-stretch: 1.0;
 			spacing: 18px;
-			WebContent { horizontal-stretch: 1.0 / 3.0; content: updates; }
+			WebContent { width: 33%; content: updates; }
 			Rectangle {
-				horizontal-stretch: 1.0 / 3.0;
+				width: 33%;
 				VerticalLayout {
 					alignment: center;
 					spacing: 12px;
 					ButtonRegular {
 						primary: app_state == AppState.ready;
 						height: 80px;
-						Text {
-							font-size: 32px;
-							text: app_state == AppState.ready ? "Launch" : app_state == AppState.session-error || app_state == AppState.network-error ? "Error" : "Loading...";
+						on_click => { Callbacks.launch() }
+						HorizontalLayout {
+							spacing: 8px;
+							alignment: center;
+							if app_state == AppState.loading : VerticalLayout { alignment: center; CleanSpinner { size: 36px; } }
+							VerticalLayout {
+								alignment: center;
+								Text {
+									font-size: 32px;
+									text: app_state == AppState.ready ? "Launch" : app_state == AppState.session-error || app_state == AppState.network-error ? "Error" : "Loading...";
+								}
+							}
 						}
 					}
 					HorizontalLayout {
@@ -118,7 +128,7 @@ export component Main inherits Window {
 
 				}
 			}
-			WebContent { horizontal-stretch: 1.0 / 3.0; content: events; }
+			WebContent { width: 33%; content: events; }
 		}
 		HorizontalLayout {
 			alignment: space-between;

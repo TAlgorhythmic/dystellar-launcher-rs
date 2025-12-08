@@ -168,3 +168,7 @@ where
 
     poll_uuid(uuid, callback);
 }
+
+pub fn fetch_manifest(version: &str) -> MinecraftManifest {
+
+}
