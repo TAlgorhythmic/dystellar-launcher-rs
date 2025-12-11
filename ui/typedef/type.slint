@@ -1,5 +1,4 @@
 export enum TaskState { waiting, in_progress, success, failed }
-export enum TaskType { download, integrity_check, operation, other }
 
 export struct TaskData {
 	name: string,
@@ -11,7 +10,6 @@ export struct TaskData {
 export struct TasksGroup {
 	name: string,
 	tasks: [TaskData],
-	type: TaskType
 }
 
 export struct Content {

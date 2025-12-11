@@ -1,5 +1,5 @@
 import { HoverableText } from "hoverable_text.slint";
-import { TasksGroup, TaskData, TaskState, TaskType } from "typedef/type.slint";
+import { TasksGroup, TaskData, TaskState } from "typedef/type.slint";
 import { ProgressBar } from "progress_bar.slint";
 import { ButtonRegular } from "button_regular.slint";
 
@@ -83,24 +83,7 @@ export component TaskManager inherits PopupWindow {
 			VerticalLayout {
 				spacing: 6px;
 				alignment: start;
-				Text { text: "Downloads"; }
 				for group in groups: Group {
-					visible: group.type == TaskType.download;
-					group: group;
-				}
-				Text { text: "Sanity Checks"; }
-				for group in groups: Group {
-					visible: group.type == TaskType.integrity-check;
-					group: group;
-				}
-				Text { text: "Operation"; }
-				for group in groups: Group {
-					visible: group.type == TaskType.operation;
-					group: group;
-				}
-				Text { text: "Other"; }
-				for group in groups: Group {
-					visible: group.type == TaskType.operation;
 					group: group;
 				}
 			}

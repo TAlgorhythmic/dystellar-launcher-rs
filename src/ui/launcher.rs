@@ -3,7 +3,7 @@ use crate::api::control::dir_provider::get_data_dir;
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, WelcomeUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::present_dialog_standalone;
-use crate::ui::launch::launch;
+use crate::ui::launch::{get_manifest_async, launch};
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::{login, login_existing};
 use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
@@ -40,10 +40,9 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         
         mods_ui.show().unwrap();
     });
-    callbacks.on_launch({
-        let ui = ui_strong.clone_strong();
-        move || launch(ui.clone_strong(), |_| {})
-    });
+    callbacks.on_launch(move || get_manifest_async(|manifest| {
+        
+    }));
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -89,14 +88,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         if session.is_none() {
             return Ok(());
         }
-        drop(session);
     }
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
     let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
 
     setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone());
-    ui.set_groups(ModelRc::from(Rc::new(VecModel::from(vec![]))));
+    ui.set_groups(ModelRc::from());
 
     if session.is_none() {
         let (access_token, refresh_token) = tokens.unwrap();

@@ -5,7 +5,7 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::typedef::ms_session::{ErrorData, MicrosoftSession}, logic::safe};
+use crate::{api::typedef::{manifest::MinecraftManifest, ms_session::{ErrorData, MicrosoftSession}}, logic::safe};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -169,6 +169,12 @@ where
     poll_uuid(uuid, callback);
 }
 
-pub fn fetch_manifest(version: &str) -> MinecraftManifest {
+pub fn fetch_manifest(version: &str) -> Result<MinecraftManifest, Box<dyn Error + Send + Sync>> {
+    let json = get("https://piston-meta.mojang.com/mc/game/version_manifest.json")?;
 
+    let version = json["versions"].members().find(|v| v["id"].as_str().map(|v| v == version).unwrap_or(false)).ok_or("Version not found")?;
+    let url = version["url"].as_str().ok_or("Url not found in version")?;
+    let manifest_json = get(url)?;
+
+    Ok(MinecraftManifest::try_from(manifest_json)?)
 }
