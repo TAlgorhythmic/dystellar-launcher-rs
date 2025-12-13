@@ -1,6 +1,7 @@
 export enum TaskState { waiting, in_progress, success, failed }
 
 export struct TaskData {
+	id: int,
 	name: string,
 	details: string,
 	progress: float,
