@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI16, AtomicI32, Ordering}, mpsc::{self, Receiver, Sender}}, thread, time::Duration};
+use std::{collections::HashMap, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}}, thread, time::Duration};
 
 use slint::{Model, ModelRc, Timer, TimerMode, VecModel};
 
