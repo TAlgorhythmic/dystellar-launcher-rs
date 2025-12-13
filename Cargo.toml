@@ -12,6 +12,14 @@ path = "src/main.rs"
 slint-build = "1.13"
 dotenv = "0.15.0"
 
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
+debug = false
+panic = "abort"
+
+
 [dependencies]
 webbrowser = "1.0.3"
 json = "0.12.4"

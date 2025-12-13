@@ -1,5 +1,6 @@
 use crate::api::config::Config;
 use crate::api::control::dir_provider::get_data_dir;
+use crate::api::typedef::task_manager::TaskManager;
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, WelcomeUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::present_dialog_standalone;
@@ -92,9 +93,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
     let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
+    let groups = Rc::new(VecModel::from(vec![]));
+    let task_manager = TaskManager::new(groups.clone());
 
     setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone());
-    ui.set_groups(ModelRc::from());
+    ui.set_groups(ModelRc::from(groups));
 
     if session.is_none() {
         let (access_token, refresh_token) = tokens.unwrap();

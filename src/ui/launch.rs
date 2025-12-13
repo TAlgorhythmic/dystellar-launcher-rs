@@ -29,4 +29,6 @@ pub fn get_manifest_async<F>(callback: F) where F: Fn(Result<MinecraftManifest, 
     });
 }
 
-pub fn launch(ui: Main, manifest: MinecraftManifest)
+pub fn launch(ui: Main, manifest: MinecraftManifest) {
+    todo!()
+}
