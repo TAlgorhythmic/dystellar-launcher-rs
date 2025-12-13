@@ -1,37 +1,81 @@
-use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex, atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering}}};
+use std::{collections::HashMap, rc::Rc, sync::{Arc, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}, mpsc::{self, Receiver, Sender}}, thread, time::Duration};
 
-use slint::{Model, ModelRc, Timer, VecModel};
+use slint::{Model, ModelRc, Timer, TimerMode, VecModel};
 
 use crate::generated::{TaskData, TaskState, TasksGroup};
 
 static NEXT_TASK_ID: AtomicI32 = AtomicI32::new(0);
 
 pub trait Task: Send + Sync + 'static {
-    /**
-    * Heavy work, like IO blocking, will be called from random threads
-    */
     fn run(&self);
-
-    /**
-    * Thread safe
-    */
     fn get_progress(&self) -> f32;
+    fn get_state(&self) -> TaskState;
+    fn get_id(&self) -> i32;
 }
 
-pub struct TaskManager<'a> {
-    groups_ui: &'a VecModel<TasksGroup>,
+pub struct TaskManager {
+    groups_ui: Rc<VecModel<TasksGroup>>,
     tasks: Arc<Mutex<HashMap<i32, Arc<dyn Task>>>>,
     timer: Timer,
-    running: AtomicBool
+    running: AtomicBool,
+    queue: Option<(Sender<Arc<dyn Task>>, Receiver<Arc<dyn Task>>)>
 }
 
-impl<'a> TaskManager<'a> {
-    pub fn new(model: &'a VecModel<TasksGroup>) -> Self {
-        Self { groups_ui: model, tasks: Arc::new(Mutex::new(HashMap::new())), timer: Timer::default(), running: AtomicBool::new(false) }
+impl TaskManager {
+    pub fn new(model: Rc<VecModel<TasksGroup>>) -> Self {
+        Self {
+            groups_ui: model,
+            tasks: Arc::new(Mutex::new(HashMap::new())),
+            timer: Timer::default(),
+            running: AtomicBool::new(false),
+            queue: None
+        }
+    }
+
+    fn destroy_queue(&mut self) {
+        drop(self.queue.take());
     }
 
     fn start_threads(&self) {
+        if let Some((s, r)) = self.queue {
+            
+            for _ in 0..thread::available_parallelism().unwrap().get() {
+                thread::spawn(|| {
+                    
+                })
+            }
+        }
+    }
+
+    fn start_running(&self) {
         self.running.store(true, Ordering::Relaxed);
+        let groups_ui = self.groups_ui.clone();
+        let tasks = self.tasks.clone();
+
+        self.timer.start(TimerMode::Repeated, Duration::from_millis(80), move || {
+            let tasks_map = tasks.lock().unwrap();
+            let mut removals: Vec<i32> = vec![];
+
+            for i in 0..groups_ui.row_count() {
+                let group = groups_ui.row_data(i).unwrap();
+                for j in 0..group.tasks.row_count() {
+                    let mut task = group.tasks.row_data(j).unwrap();
+                    let handle = tasks_map.get(&task.id);
+
+                    if handle.is_none() {
+                        removals.push(task.id);
+                        break;
+                    }
+                    let handle = handle.unwrap();
+                    task.state = handle.get_state();
+                    task.progress = handle.get_progress();
+
+                    group.get_model().set_row_data(j, task);
+                }
+            }
+        });
+
+        self.start_threads();
     }
 
     pub fn submit_task(&mut self, group: &str, name: &str, details: &str, task: impl Task) {
@@ -43,13 +87,18 @@ impl<'a> TaskManager<'a> {
             self.groups_ui.row_data(self.groups_ui.row_count() - 1).unwrap()
         });
         let id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
+        let task = Arc::new(task);
 
         group.get_model().push(TaskData::new(id, name, details));
-        tasks.insert(id, Arc::new(task));
+        tasks.insert(id, task.clone());
         drop(tasks);
 
         if should_start {
-            self.start_threads();
+            self.queue = Some(mpsc::channel());
+            self.start_running();
+        }
+        if let Some((s, _)) = &self.queue {
+            s.send(task);
         }
     }
 }
