@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}}, thread, time::Duration};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}}, thread, time::Duration};
 
 use slint::{Model, ModelRc, Timer, TimerMode, VecModel};
 
@@ -10,17 +10,20 @@ pub trait Task: Send + Sync + 'static {
     fn run(&self);
     fn get_progress(&self) -> f32;
     fn get_state(&self) -> TaskState;
-    fn get_id(&self) -> i32;
     fn claim(&self);
 }
+
+unsafe impl Send for TaskManager {}
+unsafe impl Sync for TaskManager {}
 
 pub struct TaskManager {
     groups_ui: Rc<VecModel<TasksGroup>>,
     tasks: Arc<Mutex<HashMap<i32, Arc<dyn Task>>>>,
-    timer: Timer,
+    timer: Rc<Timer>,
     running: AtomicBool,
     semaphore: Arc<Semaphore>,
-    threads: i16
+    threads: i16,
+    on_finish: Rc<RefCell<Option<Box<dyn Fn() + Send + Sync + 'static>>>>
 }
 
 impl TaskManager {
@@ -30,10 +33,11 @@ impl TaskManager {
         Self {
             groups_ui: model,
             tasks: Arc::new(Mutex::new(HashMap::new())),
-            timer: Timer::default(),
+            timer: Rc::new(Timer::default()),
             running: AtomicBool::new(false),
             semaphore: Arc::new(Semaphore::new(0)),
-            threads
+            threads,
+            on_finish: Rc::new(RefCell::new(None))
         }
     }
 
@@ -56,7 +60,8 @@ impl TaskManager {
                         continue;
                     }
                     
-                    let (_, task) = entry.unwrap();
+                    let (id, task) = entry.unwrap();
+                    let id = *id;
                     let task = task.clone();
                     task.claim();
 
@@ -65,7 +70,7 @@ impl TaskManager {
                     task.run();
 
                     let mut guard = map.lock().unwrap();
-                    guard.remove(&task.get_id());
+                    guard.remove(&id);
                     semaphore.release();
                 }
             });
@@ -76,8 +81,22 @@ impl TaskManager {
         self.running.store(true, Ordering::Relaxed);
         let groups_ui = self.groups_ui.clone();
         let tasks = self.tasks.clone();
+        let timer = self.timer.clone();
+        let on_finish = self.on_finish.clone();
+        let semaphore = self.semaphore.clone();
 
         self.timer.start(TimerMode::Repeated, Duration::from_millis(80), move || {
+            if groups_ui.row_count() == 0 {
+                if let Some(f) = &*on_finish.borrow() {
+                    f();
+                }
+
+                on_finish.replace(None);
+                semaphore.release_all();
+                timer.stop();
+                return;
+            }
+
             let tasks_map = tasks.lock().unwrap();
             let mut removals: Vec<i32> = vec![];
 
@@ -143,6 +162,10 @@ impl TaskManager {
             self.semaphore.release();
             self.start_running();
         }
+    }
+
+    pub fn on_finish(&mut self, f: impl Fn() + Send + Sync + 'static) {
+        self.on_finish.replace(Some(Box::new(f)));
     }
 }
 

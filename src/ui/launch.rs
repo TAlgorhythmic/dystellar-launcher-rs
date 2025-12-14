@@ -1,8 +1,8 @@
-use std::{error::Error, thread};
+use std::{error::Error, sync::{Arc, Mutex}, thread};
 
-use crate::{api::{control::http::{BACKEND_URL, fetch_manifest, get}, typedef::manifest::MinecraftManifest}, generated::Main, logic::safe};
+use crate::{api::{config::Config, control::http::{BACKEND_URL, fetch_manifest, get}, typedef::{manifest::MinecraftManifest, ms_session::MicrosoftSession, task_manager::TaskManager}}, generated::Main, logic::safe};
 
-pub fn get_manifest_async<F>(callback: F) where F: Fn(Result<MinecraftManifest, Box<dyn Error + Send + Sync>>) + Send + 'static {
+pub fn get_manifest_async(callback: impl Fn(Result<MinecraftManifest, Box<dyn Error>>) + Send + 'static) {
     thread::spawn(move || {
         let launcher_specs = get(format!("{BACKEND_URL}/launcher").as_str());
         if launcher_specs.is_err() {
@@ -29,6 +29,6 @@ pub fn get_manifest_async<F>(callback: F) where F: Fn(Result<MinecraftManifest, 
     });
 }
 
-pub fn launch(ui: Main, manifest: MinecraftManifest) {
+pub fn launch(ui: Main, manifest: MinecraftManifest, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TaskManager>, config: Arc<Config>) {
     todo!()
 }

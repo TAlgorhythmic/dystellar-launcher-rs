@@ -1,12 +1,12 @@
 use crate::api::config::Config;
 use crate::api::control::dir_provider::get_data_dir;
 use crate::api::typedef::task_manager::TaskManager;
-use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, WelcomeUI, ModInfo};
+use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
-use crate::ui::dialogs::present_dialog_standalone;
+use crate::ui::dialogs::{create_welcome_ui, present_dialog_standalone};
 use crate::ui::launch::{get_manifest_async, launch};
 use crate::{api::control::database::store_session, logic::open_x};
-use crate::api::control::http::{login, login_existing};
+use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
@@ -14,7 +14,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;
 
-fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>) {
+fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TaskManager>) {
     let ui_strong = ui.upgrade().unwrap();
     let callbacks = ui_strong.global::<Callbacks>();
 
@@ -41,9 +41,21 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         
         mods_ui.show().unwrap();
     });
-    callbacks.on_launch(move || get_manifest_async(|manifest| {
-        
-    }));
+    callbacks.on_launch(move || {
+        let ui = ui.clone();
+        let session = session.clone();
+        let task_manager = task_manager.clone();
+        let config = config.clone();
+        get_manifest_async(move |manifest| {
+            if let Err(e) = &manifest {
+                present_dialog_standalone("Manifest Error", format!("Error getting manifest from mojang servers: {}", e.to_string()).as_str(), DialogSeverity::Error);
+                return;
+            }
+
+            let manifest = manifest.unwrap();
+            launch(ui.upgrade().unwrap(), manifest, session.clone(), task_manager.clone(), config.clone());
+        });
+    });
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -51,36 +63,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let s_mutex: Arc<Mutex<Option<MicrosoftSession>>> = Arc::new(Mutex::new(None));
 
     if tokens.is_none() {
-        let win = WelcomeUI::new()?;
-        let mutex_cl = s_mutex.clone();
-        let win_weak = win.as_weak();
-
-        win.on_login(move || {
-            let win = win_weak.upgrade().unwrap();
-            let win_weak = win.as_weak();
-            let mutex_cl = mutex_cl.clone();
-
-            win.set_waiting(true);
-            login(move |result| {
-                let win = win_weak.upgrade().unwrap();
-
-                win.set_waiting(false);
-                if let Err(err) = &result {
-                    present_dialog_standalone(err.title, &err.description, DialogSeverity::Error);
-                    return;
-                }
-
-                let session = result.unwrap();
-                if let Err(err) = store_session(&session.access_token, &session.refresh_token) {
-                    present_dialog_standalone("Failed to store session", format!("Failed to store session in storage: {} You'll have to login again next time.", err.to_string()).as_str(), DialogSeverity::Error);
-                }
-
-                let mut guard = mutex_cl.lock().unwrap();
-
-                *guard = Some(session);
-                let _ = win.hide();
-            });
-        });
+        let win = create_welcome_ui(s_mutex.clone())?;
 
         win.run()?; // Blocking call until the user is logged in.
 
@@ -94,9 +77,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let ui = Main::new()?;
     let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
     let groups = Rc::new(VecModel::from(vec![]));
-    let task_manager = TaskManager::new(groups.clone());
+    let task_manager = Arc::new(TaskManager::new(groups.clone()));
 
-    setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone());
+    setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone(), task_manager.clone());
     ui.set_groups(ModelRc::from(groups));
 
     if session.is_none() {
