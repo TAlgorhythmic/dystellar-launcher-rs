@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::{Read, Write, copy}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
+use std::{error::Error, fs::File, io::{Read, Write}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
 
 use ureq::{BodyReader, get, http::header::CONTENT_LENGTH};
 
