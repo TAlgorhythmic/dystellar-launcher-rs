@@ -1,8 +1,10 @@
-use std::{error::Error, fs::File, io::copy, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
+use std::{error::Error, fs::File, io::{Read, Write, copy}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
 
-use ureq::get;
+use ureq::{BodyReader, get, http::header::CONTENT_LENGTH};
 
 use crate::{api::typedef::task_manager::Task, generated::TaskState};
+
+const BUFFER_SIZE: usize = 16 * 1024;
 
 impl From<u8> for TaskState {
     fn from(value: u8) -> Self {
@@ -77,11 +79,19 @@ impl<F> Task for HttpDownloadTask<F>
 {
     fn run(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut res = get(&*self.url).call()?;
+        let total_size = res.headers().get(CONTENT_LENGTH).map(|e| e.to_str().unwrap().parse::<usize>().unwrap()).unwrap_or(0);
         let mut reader = res.body_mut().as_reader();
         let mut file = File::create(&*self.output)?;
 
+        self.total.store(total_size, Ordering::Relaxed);
         self.state.store(TaskState::InProgress.into(), Ordering::Relaxed);
-        copy(&mut reader, &mut file)?;
+
+        let mut buf = [0u8; BUFFER_SIZE];
+
+        while let n = BodyReader::read(&mut reader, &mut buf)? && n > 0 {
+            file.write_all(&buf[..n])?;
+            self.progress.fetch_add(n, Ordering::Relaxed);
+        }
 
         let scripts = std::mem::take(&mut self.post_scripts);
         for f in scripts {
