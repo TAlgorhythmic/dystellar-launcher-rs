@@ -4,7 +4,7 @@ use json::{JsonValue, object, stringify_pretty};
 
 use crate::api::control::dir_provider::{get_cache_dir, get_data_dir};
 
-pub struct Size { x: i32, y: i32 }
+pub struct Size { pub x: i32, pub y: i32 }
 
 impl FromStr for Size {
     type Err = String;

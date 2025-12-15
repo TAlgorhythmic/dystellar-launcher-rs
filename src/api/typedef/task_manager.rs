@@ -1,24 +1,36 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}}, thread, time::Duration};
+use std::{cell::{RefCell, UnsafeCell}, collections::HashMap, error::Error, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}}, thread, time::Duration};
 
 use slint::{Model, ModelRc, Timer, TimerMode, VecModel};
 
-use crate::generated::{TaskData, TaskState, TasksGroup};
+use crate::{generated::{DialogSeverity, TaskData, TaskState, TasksGroup}, logic::safe, ui::dialogs::present_dialog_standalone};
 
 static NEXT_TASK_ID: AtomicI32 = AtomicI32::new(0);
 
 pub trait Task: Send + Sync + 'static {
-    fn run(&self);
+    fn run(&mut self) -> Result<(), Box<dyn Error + Send + Sync>>;
     fn get_progress(&self) -> f32;
     fn get_state(&self) -> TaskState;
-    fn claim(&self);
+    fn claim(&mut self);
+}
+
+struct TaskWrapper {
+    task: UnsafeCell<Box<dyn Task>>
+}
+
+impl TaskWrapper {
+    pub fn new(task: impl Task) -> Self {
+        Self { task: UnsafeCell::new(Box::new(task)) }
+    }
 }
 
 unsafe impl Send for TaskManager {}
 unsafe impl Sync for TaskManager {}
+unsafe impl Send for TaskWrapper {}
+unsafe impl Sync for TaskWrapper {}
 
 pub struct TaskManager {
     groups_ui: Rc<VecModel<TasksGroup>>,
-    tasks: Arc<Mutex<HashMap<i32, Arc<dyn Task>>>>,
+    tasks: Arc<Mutex<HashMap<i32, Arc<TaskWrapper>>>>,
     timer: Rc<Timer>,
     running: AtomicBool,
     semaphore: Arc<Semaphore>,
@@ -53,7 +65,7 @@ impl TaskManager {
                         return;
                     }
 
-                    let entry = guard.iter().find(|e| e.1.get_state() == TaskState::Waiting);
+                    let entry = guard.iter().find(|e| unsafe {(&*e.1.task.get()).get_state()} == TaskState::Waiting);
                     if entry.is_none() {
                         semaphore.acquire();
                         semaphore.release();
@@ -62,12 +74,14 @@ impl TaskManager {
                     
                     let (id, task) = entry.unwrap();
                     let id = *id;
-                    let task = task.clone();
+                    let task = unsafe {&mut *task.clone().task.get()};
                     task.claim();
 
                     drop(guard);
                     semaphore.acquire();
-                    task.run();
+                    if let Err(err) = task.run() {
+                        safe(move || present_dialog_standalone("Task Error", format!("Error performing task: {}", err.to_string()).as_str(), DialogSeverity::Error));
+                    }
 
                     let mut guard = map.lock().unwrap();
                     guard.remove(&id);
@@ -110,7 +124,7 @@ impl TaskManager {
                         removals.push(task.id);
                         break;
                     }
-                    let handle = handle.unwrap();
+                    let handle = unsafe { &*handle.unwrap().task.get() };
                     task.state = handle.get_state();
                     task.progress = handle.get_progress();
 
@@ -151,7 +165,7 @@ impl TaskManager {
             self.groups_ui.row_data(self.groups_ui.row_count() - 1).unwrap()
         });
         let id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
-        let task = Arc::new(task);
+        let task = Arc::new(TaskWrapper::new(task));
 
         group.get_model().push(TaskData::new(id, name, details));
         tasks.insert(id, task);

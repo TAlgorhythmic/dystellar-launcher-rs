@@ -41,7 +41,7 @@ component TaskItem inherits HorizontalLayout {
 	ProgressBar {
 		width: 150px;
 		height: 35px;
-		color: task.state == TaskState.success ? #056800 : task.state == TaskState.failed ? #680000 : #006856;
+		color: task.state == TaskState.finished ? #056800 : task.state == TaskState.failed ? #680000 : #006856;
 		progress: task.progress;
 	}
 }
