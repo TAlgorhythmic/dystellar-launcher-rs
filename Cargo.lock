@@ -1301,6 +1301,7 @@ dependencies = [
  "chrono",
  "directories",
  "dotenv",
+ "itertools 0.14.0",
  "json",
  "magic-crypt",
  "sled",

@@ -42,7 +42,6 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         mods_ui.show().unwrap();
     });
     callbacks.on_launch(move || {
-        let ui = ui.clone();
         let session = session.clone();
         let task_manager = task_manager.clone();
         let config = config.clone();
@@ -53,7 +52,7 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
             }
 
             let manifest = manifest.unwrap();
-            launch(ui.upgrade().unwrap(), manifest, session.clone(), task_manager.clone(), config.clone());
+            launch(manifest.0, &manifest.1, session.clone(), task_manager.clone(), config.clone());
         });
     });
 }

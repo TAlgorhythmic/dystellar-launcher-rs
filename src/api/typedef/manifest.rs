@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{cmp::Ordering, error::Error};
 
 use json::JsonValue;
 
@@ -11,11 +11,11 @@ pub struct AssetIndex {
 }
 
 pub struct Download {
-    id: Box<str>,
-    path: Option<Box<str>>,
-    sha1: Box<str>,
-    size: isize,
-    url: Box<str>
+    pub id: Box<str>,
+    pub path: Option<Box<str>>,
+    pub sha1: Box<str>,
+    pub size: isize,
+    pub url: Box<str>
 }
 
 pub struct Library {
@@ -31,6 +31,38 @@ pub struct MinecraftManifest {
     pub java_version: i32,
     pub libs: Vec<Library>,
     pub main_class: Box<str>
+}
+
+pub struct JavaManifest {
+    pub download_url: Box<str>,
+    pub name: Box<str>
+}
+
+impl TryFrom<JsonValue> for JavaManifest {
+    type Error = Box<dyn Error + Send + Sync>;
+
+    fn try_from(v: JsonValue) -> Result<Self, Self::Error> {
+        let max = v.members().max_by(|v1, v2| {
+            let name1 = v1["name"].as_str();
+            let name2 = v2["name"].as_str();
+
+            if name1.is_none() {
+                return Ordering::Less;
+            } else if name2.is_none() {
+                return Ordering::Greater;
+            }
+
+            let name1 = name1.unwrap();
+            let name2 = name2.unwrap();
+
+            name1.cmp(name2)
+        }).ok_or_else(|| -> Self::Error {"Failed to find a suitable jre".into()})?;
+
+        Ok(Self {
+            download_url: max["download_url"].as_str().ok_or_else(|| -> Self::Error {"Failed to find a suitable jre".into()})?.into(),
+            name: max["download_url"].as_str().ok_or_else(|| -> Self::Error {"Failed to find a suitable jre".into()})?.into(),
+        })
+    }
 }
 
 impl TryFrom<JsonValue> for AssetIndex {

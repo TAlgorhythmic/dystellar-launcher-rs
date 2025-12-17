@@ -9,7 +9,7 @@ use crate::{api::typedef::{manifest::MinecraftManifest, ms_session::{ErrorData, 
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
-static CLIENT_ID: &str = env!("CLIENT_ID");
+pub static CLIENT_ID: &str = env!("CLIENT_ID");
 static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().http_status_as_error(false).timeout_global(Some(Duration::from_secs(20))).build().into());
 
 pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
@@ -35,10 +35,6 @@ pub fn post(path: &str, json: JsonValue) -> Result<JsonValue, Box<dyn Error + Se
     Ok(res)
 }
 
-pub fn download(url: &str, output: PathBuf) -> Result<(), Box<dyn Error>> {
-    Ok(())
-}
-
 pub fn login_existing<F>(access_token: Box<str>, refresh_token: Box<str>, f: F)
 where
     F: FnOnce(Result<MicrosoftSession, Box<dyn Error>>) + Send + 'static
@@ -57,22 +53,27 @@ where
 
         let res = result.unwrap();
 
-        let uuid_opt: Option<Box<str>> = res["uuid"].as_str().map(|s| s.into());
-        let mc_token_opt: Option<Box<str>> = res["minecraft_token"].as_str().map(|s| s.into());
-        let access_token_opt: Option<Box<str>> = res["access_token"].as_str().map(|s| s.into());
-        let refresh_token_opt: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
+        let uuid: Option<Box<str>> = res["uuid"].as_str().map(|s| s.into());
+        let username: Option<Box<str>> = res["username"].as_str().map(|s| s.into());
+        let mc_token: Option<Box<str>> = res["minecraft_token"].as_str().map(|s| s.into());
+        let access_token: Option<Box<str>> = res["access_token"].as_str().map(|s| s.into());
+        let refresh_token: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
+        let uhs: Option<Box<str>> = res["uhs"].as_str().map(|s| s.into());
+        let xuid: Option<Box<str>> = res["xuid"].as_str().map(|s| s.into());
 
-        if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
+        if uuid.is_none() || username.is_none() || mc_token.is_none() || access_token.is_none() || refresh_token.is_none() || uhs.is_none() || xuid.is_none() {
             safe(move || f(Err("Failed to process session: Malformed or incomplete data, please contact support.".into())));
             return;
         }
 
         safe(move || f(Ok(MicrosoftSession {
-            uuid: uuid_opt.unwrap(),
-            username: "TODO?".into(),
-            access_token: access_token_opt.unwrap(),
-            refresh_token: refresh_token_opt.unwrap(),
-            minecraft_token: mc_token_opt.unwrap()
+            uuid: uuid.unwrap(),
+            username: username.unwrap(),
+            access_token: access_token.unwrap(),
+            refresh_token: refresh_token.unwrap(),
+            minecraft_token: mc_token.unwrap(),
+            uhs: uhs.unwrap(),
+            xuid: xuid.unwrap()
         })));
     });
 }
@@ -107,36 +108,42 @@ where
                 break;
             }
 
-            let body_res = res.unwrap();
-            let ok = body_res["ok"].as_bool();
+            let res = res.unwrap();
+            let ok = res["ok"].as_bool();
 
             if !ok.unwrap_or(false) {
-                let body_err_msg: Box<str> = body_res["error"].as_str().unwrap_or("Cannot provide error message").into();
+                let body_err_msg: Box<str> = res["error"].as_str().unwrap_or("Cannot provide error message").into();
                 let err_str = format!("Login failed: {}. Please contact support.", body_err_msg);
 
                 safe(move || callback(Err(ErrorData { title: "Server Error", description: err_str.into() })));
                 break;
             }
 
-            if !body_res["authenticated"].as_bool().unwrap_or(false) {
+            if !res["authenticated"].as_bool().unwrap_or(false) {
                 continue;
             }
 
-            let uuid_opt = body_res["uuid"].as_str();
-            let mc_token_opt = body_res["minecraft_token"].as_str();
-            let access_token_opt = body_res["access_token"].as_str();
-            let refresh_token_opt = body_res["refresh_token"].as_str();
 
-            if uuid_opt.is_none() || mc_token_opt.is_none() || access_token_opt.is_none() || refresh_token_opt.is_none() {
+            let uuid: Option<Box<str>> = res["uuid"].as_str().map(|s| s.into());
+            let username: Option<Box<str>> = res["username"].as_str().map(|s| s.into());
+            let mc_token: Option<Box<str>> = res["minecraft_token"].as_str().map(|s| s.into());
+            let access_token: Option<Box<str>> = res["access_token"].as_str().map(|s| s.into());
+            let refresh_token: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
+            let uhs: Option<Box<str>> = res["uhs"].as_str().map(|s| s.into());
+            let xuid: Option<Box<str>> = res["xuid"].as_str().map(|s| s.into());
+
+            if uuid.is_none() || username.is_none() || mc_token.is_none() || access_token.is_none() || refresh_token.is_none() || uhs.is_none() || xuid.is_none() {
                 safe(move || callback(Err(ErrorData { title: "Session Error", description: "Data received from server is incomplete. Please contact support.".into() })));
-                break;
+                return;
             }
             let session = MicrosoftSession {
-                uuid: uuid_opt.unwrap().into(),
-                username: "TODO".into(),
-                access_token: access_token_opt.unwrap().into(),
-                refresh_token: refresh_token_opt.unwrap().into(),
-                minecraft_token: mc_token_opt.unwrap().into()
+                uuid: uuid.unwrap(),
+                username: username.unwrap(),
+                access_token: access_token.unwrap(),
+                refresh_token: refresh_token.unwrap(),
+                minecraft_token: mc_token.unwrap(),
+                uhs: uhs.unwrap(),
+                xuid: xuid.unwrap()
             };
 
             safe(move || callback(Ok(session)));
