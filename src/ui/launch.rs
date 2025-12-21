@@ -98,7 +98,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     args
 }
 
-pub fn try_download_library(lib: &Library, task_manager: &Arc<TaskManager>) -> Result<(), Box<dyn Error>> {
+pub fn try_download_library(lib: &Library, task_manager: &Arc<TaskManager>) -> Result<(), Box<dyn Error + Send + Sync>> {
     #[cfg(target_os = "linux")] {
         if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"linux").is_none() {
             return Ok(());
@@ -131,9 +131,9 @@ pub fn try_download_library(lib: &Library, task_manager: &Arc<TaskManager>) -> R
             if lib.name.contains("native") {
                 let output_cl = output.clone();
 
-                post_scripts.push(Box::new(move |download_task| download_task.post_unpack_natives(output_cl.clone(), get_data_dir().join("natives").to_str().unwrap())));
+                post_scripts.push(Box::new(move |download_task| download_task.post_unpack_natives(output_cl.clone(), get_data_dir().join("natives"))));
             }
-            let task = HttpDownloadTask::new(&download.url, output.to_str().unwrap(), post_scripts);
+            let task = HttpDownloadTask::new(&download.url, output.to_str().unwrap(), post_scripts)?;
             task_manager.submit_task("Downloads", &lib.name, &download.url, task);
         }
     }

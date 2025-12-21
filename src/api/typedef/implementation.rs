@@ -1,12 +1,20 @@
-use std::{error::Error, fs::File, io::{Read, Write}, path::PathBuf, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
+use std::{error::Error, fs::File, io::{Read, Write}, path::{Path, PathBuf}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
 
 use sha1::Sha1;
 use sha2::Digest;
 use ureq::{BodyReader, get, http::header::CONTENT_LENGTH};
+use zip::ZipArchive;
 
 use crate::{api::typedef::task_manager::Task, generated::TaskState};
 
 const BUFFER_SIZE: usize = 16 * 1024;
+
+#[cfg(target_os = "macos")]
+const NATIVE_EXT: &'static str = ".dylib";
+#[cfg(target_os = "windows")]
+const NATIVE_EXT: &'static str = ".dll";
+#[cfg(target_os = "linux")]
+const NATIVE_EXT: &'static str = ".so";
 
 impl From<u8> for TaskState {
     fn from(value: u8) -> Self {
@@ -82,8 +90,29 @@ impl HttpDownloadTask {
         Ok(())
     }
 
-    pub fn post_unpack_natives(&mut self, path: PathBuf, output: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub fn post_unpack_natives(&mut self, path: PathBuf, output: PathBuf) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.state.store(TaskState::Unpacking.into(), Ordering::Relaxed);
 
+        let mut zip = ZipArchive::new(File::open(path)?)?;
+
+        for i in 0..zip.len() {
+            let entry = zip.by_index_raw(i)?;
+
+            if entry.name().ends_with(NATIVE_EXT) {
+                let name = entry.enclosed_name().ok_or("Failed to get file path")?;
+                let filename = name.file_name().ok_or("Failed to get filename")?;
+                let mut out = File::create(output.join(filename))?;
+                drop(entry);
+                let mut input = zip.by_index(i)?;
+                let mut buf = [0u8; BUFFER_SIZE];
+
+                while let rd = input.read(&mut buf)? && rd > 0 {
+                    out.write_all(&mut buf[..rd])?;
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
