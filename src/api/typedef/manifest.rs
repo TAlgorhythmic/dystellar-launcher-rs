@@ -60,7 +60,7 @@ impl TryFrom<JsonValue> for JavaManifest {
 
         Ok(Self {
             download_url: max["download_url"].as_str().ok_or_else(|| -> Self::Error {"Failed to find a suitable jre".into()})?.into(),
-            name: max["download_url"].as_str().ok_or_else(|| -> Self::Error {"Failed to find a suitable jre".into()})?.into(),
+            name: max["name"].as_str().ok_or_else(|| -> Self::Error {"Failed to find a suitable jre".into()})?.into(),
         })
     }
 }

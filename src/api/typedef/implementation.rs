@@ -1,5 +1,7 @@
-use std::{error::Error, fs::File, io::{Read, Write}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
+use std::{error::Error, fs::File, io::{Read, Write}, path::PathBuf, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
 
+use sha1::Sha1;
+use sha2::Digest;
 use ureq::{BodyReader, get, http::header::CONTENT_LENGTH};
 
 use crate::{api::typedef::task_manager::Task, generated::TaskState};
@@ -34,31 +36,17 @@ impl From<TaskState> for u8 {
     }
 }
 
-pub struct HttpDownloadTask<F>
-    where F: Fn(&mut HttpDownloadTask<F>) -> Result<(), Box<dyn Error + Send + Sync>>
-    + Send
-    + Sync
-    + 'static
-{
+pub struct HttpDownloadTask {
     pub url: Box<str>,
     pub total: AtomicUsize,
     pub progress: AtomicUsize,
     pub state: AtomicU8,
     pub output: Box<str>,
-    pub post_scripts: Vec<F>,
+    pub post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>,
 }
 
-impl<F> HttpDownloadTask<F>
-    where F: Fn(&mut HttpDownloadTask<F>) -> Result<(), Box<dyn Error + Send + Sync>>
-    + Send
-    + Sync
-    + 'static
-{
-    pub fn new(url: &str, output: &str, post_scripts: Vec<F>) -> Result<Self, Box<dyn Error + Send + Sync>>
-        where F: Fn(&mut HttpDownloadTask<F>) -> Result<(), Box<dyn Error + Send + Sync>>
-        + Send
-        + Sync
-        + 'static
+impl HttpDownloadTask {
+    pub fn new(url: &str, output: &str, post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>) -> Result<Self, Box<dyn Error + Send + Sync>>
     {
         Ok(HttpDownloadTask {
             url: url.into(),
@@ -69,14 +57,37 @@ impl<F> HttpDownloadTask<F>
             post_scripts: post_scripts
         })
     }
+
+    pub fn post_verify_sha1(&mut self, path: PathBuf, sha1: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.state.store(TaskState::Verifying.into(), Ordering::Relaxed);
+        let mut file = File::open(path)?;
+        let mut buf = [0u8; 8192];
+        let mut hasher = Sha1::new();
+
+        self.progress.store(0, Ordering::Relaxed);
+        self.total.store(file.metadata()?.len() as usize, Ordering::Relaxed);
+
+        while let rd = file.read(&mut buf)? && rd > 0 {
+            hasher.update(&buf[..rd]);
+            self.progress.fetch_add(rd, Ordering::Relaxed);
+        }
+
+        let result = hasher.finalize();
+        let hex = format!("{:x}", result);
+
+        if hex.as_str() != sha1 {
+            return Err("Integrity test failed, sha1sum mismatch!".into());
+        }
+
+        Ok(())
+    }
+
+    pub fn post_unpack_natives(&mut self, path: PathBuf, output: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+
+    }
 }
 
-impl<F> Task for HttpDownloadTask<F>
-    where F: Fn(&mut HttpDownloadTask<F>) -> Result<(), Box<dyn Error + Send + Sync>>
-    + Send
-    + Sync
-    + 'static
-{
+impl Task for HttpDownloadTask {
     fn run(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut res = get(&*self.url).call()?;
         let total_size = res.headers().get(CONTENT_LENGTH).map(|e| e.to_str().unwrap().parse::<usize>().unwrap()).unwrap_or(0);

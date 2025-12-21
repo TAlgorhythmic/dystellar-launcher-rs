@@ -85,9 +85,9 @@ impl Config {
             branch: "master".into(),
             jvm_args: "".into(),
             close_on_launch: false,
-            game_dir: format!("{}/.dystellar", get_data_dir().to_str().unwrap()).into(),
+            game_dir: format!("{}/dystellar", get_data_dir().to_str().unwrap()).into(),
             cache_dir: format!("{}/dyst", get_cache_dir().to_str().unwrap()).into(),
-            jdk_dir: format!("{}/.dystellar/jdk", get_data_dir().to_str().unwrap()).into()
+            jdk_dir: format!("{}/jdk", get_data_dir().to_str().unwrap()).into()
         }
     }
 

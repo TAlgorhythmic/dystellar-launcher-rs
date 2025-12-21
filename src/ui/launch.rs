@@ -1,8 +1,8 @@
-use std::{error::Error, sync::{Arc, Mutex, MutexGuard}, thread};
+use std::{error::Error, fs, sync::{Arc, Mutex, MutexGuard, atomic::Ordering}, thread};
 
 use itertools::Itertools;
 
-use crate::{api::{config::Config, control::{dir_provider::get_data_dir, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get}}, typedef::{manifest::{JavaManifest, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::TaskManager}}, generated::{DialogSeverity, Main}, logic::safe, ui::dialogs::present_dialog_standalone};
+use crate::{api::{config::Config, control::{dir_provider::get_data_dir, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get}}, typedef::{implementation::HttpDownloadTask, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::TaskManager}}, generated::{DialogSeverity, Main, TaskState}, logic::safe, ui::dialogs::present_dialog_standalone};
 
 pub fn get_manifest_async(callback: impl Fn(Result<(MinecraftManifest, Box<str>), Box<dyn Error>>) + Send + 'static) {
     thread::spawn(move || {
@@ -77,6 +77,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
 
     args.push("-cp".into());
     args.push(classpath.into_boxed_str());
+    args.push(manifest.main_class.clone());
 
     let mut game_args: Vec<Box<str>> = vec![
         "--username".into(), session.get_username().into(),
@@ -97,29 +98,47 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     args
 }
 
-pub fn get_jre_manifest(manifest: &MinecraftManifest) -> Result<JavaManifest, Box<dyn Error + Send + Sync>> {
-    #[cfg(target_os = "linux")]
-    let os = "linux-glibc";
-    #[cfg(target_os = "macos")]
-    let os = "macos";
-    #[cfg(target_os = "windows")]
-    let os = "windows";
+pub fn try_download_library(lib: &Library, task_manager: &Arc<TaskManager>) -> Result<(), Box<dyn Error>> {
+    #[cfg(target_os = "linux")] {
+        if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"linux").is_none() {
+            return Ok(());
+        }
+    }
+    #[cfg(target_os = "windows")] {
+        if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"windows").is_none() {
+            return Ok(());
+        }
+    }
+    #[cfg(target_os = "macos")] {
+        if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"osx").is_none() {
+            return Ok(());
+        }
+    }
 
-    #[cfg(target_os = "windows")]
-    let archive_type = "zip";
-    #[cfg(not(target_os = "windows"))]
-    let archive_type = "tar.gz";
+    let folder = get_data_dir().join("libs");
+    let _ = fs::create_dir(&folder);
 
-    #[cfg(target_arch = "x86_64")]
-    let arch = "amd64";
-    #[cfg(target_arch = "aarch64")]
-    let arch = "aarch64";
+    for download in &lib.downloads {
+        let output = folder.join(download.path.as_ref().unwrap().as_ref());
 
-    let java_version = &manifest.java_version;
+        if *download.id == *"artifact" && !fs::exists(&output)? {
+            let _ = fs::create_dir_all(&output);
+            let output_cl = output.clone();
+            let sha1 = download.sha1.clone();
 
-    let url = format!("https://api.azul.com/metadata/v1/zulu/packages/?java_version={java_version}&os={os}&arch={arch}&archive_type={archive_type}&java_package_type=jre&javafx_bundled=false&crac_supported=false&support_term=lts&latest=true&java_package_features=headfull&availability_types=CA&certifications=tck");
+            let mut post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>
+                = vec![Box::new(move |download_task| download_task.post_verify_sha1(output_cl.clone(), &sha1))];
+            if lib.name.contains("native") {
+                let output_cl = output.clone();
 
-    JavaManifest::try_from(get(&url)?)
+                post_scripts.push(Box::new(move |download_task| download_task.post_unpack_natives(output_cl.clone(), get_data_dir().join("natives").to_str().unwrap())));
+            }
+            let task = HttpDownloadTask::new(&download.url, output.to_str().unwrap(), post_scripts);
+            task_manager.submit_task("Downloads", &lib.name, &download.url, task);
+        }
+    }
+
+    Ok(())
 }
 
 pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TaskManager>, config: Arc<Config>) {

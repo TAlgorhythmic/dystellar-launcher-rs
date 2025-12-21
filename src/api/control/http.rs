@@ -5,7 +5,7 @@ use ureq::Agent;
 use webbrowser;
 use uuid::Uuid;
 
-use crate::{api::typedef::{manifest::MinecraftManifest, ms_session::{ErrorData, MicrosoftSession}}, logic::safe};
+use crate::{api::typedef::{manifest::{JavaManifest, MinecraftManifest}, ms_session::{ErrorData, MicrosoftSession}}, logic::safe};
 
 pub static BACKEND_URL: &str = env!("BACKEND_URL");
 
@@ -184,4 +184,31 @@ pub fn fetch_manifest(version: &str) -> Result<MinecraftManifest, Box<dyn Error 
     let manifest_json = get(url)?;
 
     Ok(MinecraftManifest::try_from(manifest_json)?)
+}
+
+pub fn get_jre_manifest(manifest: &MinecraftManifest) -> Result<JavaManifest, Box<dyn Error + Send + Sync>> {
+    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+    let os = "linux-glibc";
+    #[cfg(all(target_os = "linux", target_env = "musl"))]
+    let os = "linux-musl";
+    #[cfg(target_os = "macos")]
+    let os = "macos";
+    #[cfg(target_os = "windows")]
+    let os = "windows";
+
+    #[cfg(target_os = "windows")]
+    let archive_type = "zip";
+    #[cfg(not(target_os = "windows"))]
+    let archive_type = "tar.gz";
+
+    #[cfg(target_arch = "x86_64")]
+    let arch = "amd64";
+    #[cfg(target_arch = "aarch64")]
+    let arch = "aarch64";
+
+    let java_version = &manifest.java_version;
+
+    let url = format!("https://api.azul.com/metadata/v1/zulu/packages/?java_version={java_version}&os={os}&arch={arch}&archive_type={archive_type}&java_package_type=jre&javafx_bundled=false&crac_supported=false&support_term=lts&latest=true&java_package_features=headfull&availability_types=CA&certifications=tck");
+
+    JavaManifest::try_from(get(&url)?)
 }
