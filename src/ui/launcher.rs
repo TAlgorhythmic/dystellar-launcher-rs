@@ -1,6 +1,6 @@
 use crate::api::config::Config;
 use crate::api::control::dir_provider::get_data_dir;
-use crate::api::typedef::task_manager::TaskManager;
+use crate::api::typedef::task_manager::{TaskManager, TasksCell};
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::{create_welcome_ui, present_dialog_standalone};
@@ -10,11 +10,12 @@ use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
+use std::cell::UnsafeCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;
 
-fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TaskManager>) {
+fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TasksCell<TaskManager>>) {
     let ui_strong = ui.upgrade().unwrap();
     let callbacks = ui_strong.global::<Callbacks>();
 
@@ -76,7 +77,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let ui = Main::new()?;
     let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
     let groups = Rc::new(VecModel::from(vec![]));
-    let task_manager = Arc::new(TaskManager::new(groups.clone()));
+    let task_manager = Arc::new(TasksCell(UnsafeCell::new(TaskManager::new(groups.clone()))));
 
     setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone(), task_manager.clone());
     ui.set_groups(ModelRc::from(groups));

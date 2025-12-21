@@ -23,6 +23,16 @@ impl TaskWrapper {
     }
 }
 
+pub struct TasksCell<T>(pub UnsafeCell<T>);
+
+unsafe impl<T: Send> Send for TasksCell<T> {}
+
+impl<'a, T> TasksCell<T> {
+    pub fn get(&self) -> &'a mut T {
+        unsafe {self.0.get().as_mut().unwrap()}
+    }
+}
+
 unsafe impl Send for TaskManager {}
 unsafe impl Sync for TaskManager {}
 unsafe impl Send for TaskWrapper {}

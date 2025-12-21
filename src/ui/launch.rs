@@ -2,7 +2,7 @@ use std::{error::Error, fs, sync::{Arc, Mutex, MutexGuard, atomic::Ordering}, th
 
 use itertools::Itertools;
 
-use crate::{api::{config::Config, control::{dir_provider::get_data_dir, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get}}, typedef::{implementation::HttpDownloadTask, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::TaskManager}}, generated::{DialogSeverity, Main, TaskState}, logic::safe, ui::dialogs::present_dialog_standalone};
+use crate::{api::{config::Config, control::{dir_provider::get_data_dir, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get, get_jre_manifest}}, typedef::{implementation::HttpDownloadTask, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::{TaskManager, TasksCell}}}, generated::{DialogSeverity, Main, TaskState}, logic::safe, ui::dialogs::present_dialog_standalone};
 
 pub fn get_manifest_async(callback: impl Fn(Result<(MinecraftManifest, Box<str>), Box<dyn Error>>) + Send + 'static) {
     thread::spawn(move || {
@@ -98,7 +98,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     args
 }
 
-pub fn try_download_library(lib: &Library, task_manager: &Arc<TaskManager>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn setup_library(lib: &Library, task_manager: &Arc<TasksCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
     #[cfg(target_os = "linux")] {
         if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"linux").is_none() {
             return Ok(());
@@ -134,14 +134,23 @@ pub fn try_download_library(lib: &Library, task_manager: &Arc<TaskManager>) -> R
                 post_scripts.push(Box::new(move |download_task| download_task.post_unpack_natives(output_cl.clone(), get_data_dir().join("natives"))));
             }
             let task = HttpDownloadTask::new(&download.url, output.to_str().unwrap(), post_scripts)?;
-            task_manager.submit_task("Downloads", &lib.name, &download.url, task);
+            task_manager.get().submit_task("Downloads", &lib.name, &download.url, task);
         }
     }
 
     Ok(())
 }
 
-pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TaskManager>, config: Arc<Config>) {
+pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Arc<TasksCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    
+    Ok(())
+}
+
+pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Arc<TasksCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+
+}
+
+pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TasksCell<TaskManager>>, config: Arc<Config>) {
     let session = session.lock().unwrap();
     if session.is_none() {
         present_dialog_standalone("Session Error", "Seems like you are not logged in", DialogSeverity::Error);
@@ -149,7 +158,28 @@ pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Opt
     }
 
     if let Some(session) = &*session {
+        let java = get_jre_manifest(&manifest);
+        if let Err(err) = &java {
+            present_dialog_standalone("JRE Error", format!("Failed to fetch java manifest from azul zulu: {}", err.to_string()).as_str(), DialogSeverity::Error);
+            return;
+        }
+        let java = java.unwrap();
         let args = get_args(&manifest, &config, version, session);
         
+        if let Err(err) = setup_jre(java, &task_manager) {
+            present_dialog_standalone("JRE Error", format!("Failed to setup jre: {}", err.to_string()).as_str(), DialogSeverity::Error);
+            return;
+        }
+
+        for lib in &manifest.libs {
+            if let Err(err) = setup_library(lib, &task_manager) {
+                present_dialog_standalone("Lib Error", format!("Failed to setup library {}: {}", lib.name, err.to_string()).as_str(), DialogSeverity::Error);
+                return;
+            }
+        }
+        if let Err(err) = setup_assets(&manifest, &task_manager) {
+            present_dialog_standalone("Asset Error", format!("Failed to setup assets: {}", err.to_string()).as_str(), DialogSeverity::Error);
+            return;
+        }
     }
 }
