@@ -4,18 +4,18 @@ use crate::api::typedef::task_manager::{TaskManager, TasksCell};
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::{create_welcome_ui, present_dialog_standalone};
-use crate::ui::launch::{get_manifest_async, launch};
+use crate::ui::launch::{get_manifest, launch};
 use crate::{api::control::database::store_session, logic::open_x};
 use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
-use std::cell::UnsafeCell;
+use std::cell::{RefCell, UnsafeCell};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;
 
-fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TasksCell<TaskManager>>) {
+fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Rc<RefCell<TaskManager>>) {
     let ui_strong = ui.upgrade().unwrap();
     let callbacks = ui_strong.global::<Callbacks>();
 
@@ -46,15 +46,15 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         let session = session.clone();
         let task_manager = task_manager.clone();
         let config = config.clone();
-        get_manifest_async(move |manifest| {
-            if let Err(e) = &manifest {
-                present_dialog_standalone("Manifest Error", format!("Error getting manifest from mojang servers: {}", e.to_string()).as_str(), DialogSeverity::Error);
-                return;
-            }
+        let res = get_manifest();
 
-            let manifest = manifest.unwrap();
-            launch(manifest.0, &manifest.1, session.clone(), task_manager.clone(), config.clone());
-        });
+        if let Err(err) = &res {
+            present_dialog_standalone("Manifest Error", format!("Error getting manifest from mojang servers: {}", err.to_string()).as_str(), DialogSeverity::Error);
+            return;
+        }
+
+        let (manifest, version) = res.unwrap();
+        launch(manifest, &version, session.clone(), task_manager.clone(), config.clone());
     });
 }
 
@@ -63,9 +63,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let s_mutex: Arc<Mutex<Option<MicrosoftSession>>> = Arc::new(Mutex::new(None));
 
     if tokens.is_none() {
-        let win = create_welcome_ui(s_mutex.clone())?;
-
-        win.run()?; // Blocking call until the user is logged in.
+        create_welcome_ui(s_mutex.clone())?.run()?; // Blocking call until the user is logged in.
 
         // If the user closes the program without logging in.
         let session = s_mutex.lock().unwrap();
@@ -73,11 +71,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             return Ok(());
         }
     }
+
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
     let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
     let groups = Rc::new(VecModel::from(vec![]));
-    let task_manager = Arc::new(TasksCell(UnsafeCell::new(TaskManager::new(groups.clone()))));
+    let task_manager = Rc::new(RefCell::new(TaskManager::new(groups.clone())));
 
     setup_callbacks(ui.as_weak(), config.clone(), s_mutex.clone(), task_manager.clone());
     ui.set_groups(ModelRc::from(groups));

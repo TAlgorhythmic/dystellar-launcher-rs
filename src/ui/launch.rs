@@ -1,34 +1,29 @@
-use std::{error::Error, fs, sync::{Arc, Mutex, MutexGuard, atomic::Ordering}, thread};
+use std::{cell::RefCell, error::Error, fs, path::PathBuf, rc::Rc, str::FromStr, sync::{Arc, Mutex}};
 
 use itertools::Itertools;
 
-use crate::{api::{config::Config, control::{dir_provider::get_data_dir, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get, get_jre_manifest}}, typedef::{implementation::HttpDownloadTask, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::{TaskManager, TasksCell}}}, generated::{DialogSeverity, Main, TaskState}, logic::safe, ui::dialogs::present_dialog_standalone};
+use crate::{api::{config::Config, control::{dir_provider::{get_cache_dir, get_data_dir}, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get, get_jre_manifest}}, typedef::{implementation::HttpDownloadTask, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::TaskManager}}, generated::DialogSeverity, ui::dialogs::present_dialog_standalone};
 
-pub fn get_manifest_async(callback: impl Fn(Result<(MinecraftManifest, Box<str>), Box<dyn Error>>) + Send + 'static) {
-    thread::spawn(move || {
-        let launcher_specs = get(format!("{BACKEND_URL}/launcher").as_str());
-        if launcher_specs.is_err() {
-            safe(move || callback(Err(launcher_specs.err().unwrap())));
-            return;
-        }
+pub fn get_manifest() -> Result<(MinecraftManifest, Box<str>), Box<dyn Error>> {
+    let launcher_specs = get(format!("{BACKEND_URL}/launcher").as_str());
+    if launcher_specs.is_err() {
+        return Err(launcher_specs.err().unwrap());
+    }
 
-        let launcher_specs = launcher_specs.unwrap();
-        let minecraft_version = launcher_specs["minecraft_version"].as_str();
-        if minecraft_version.is_none() {
-            safe(move || callback(Err("Malformed response, minecraft_version not found".into())));
-            return;
-        }
+    let launcher_specs = launcher_specs.unwrap();
+    let minecraft_version = launcher_specs["minecraft_version"].as_str();
+    if minecraft_version.is_none() {
+        return Err("Malformed response, minecraft_version not found".into());
+    }
 
-        let minecraft_version: Box<str> = minecraft_version.unwrap().into();
-        let manifest = fetch_manifest(&minecraft_version);
+    let minecraft_version: Box<str> = minecraft_version.unwrap().into();
+    let manifest = fetch_manifest(&minecraft_version);
 
-        if manifest.is_err() {
-            safe(move || callback(Err(format!("Failed to fetch minecraft manifest: {}", manifest.err().unwrap()).into())));
-            return;
-        }
+    if manifest.is_err() {
+        return Err(format!("Failed to fetch minecraft manifest: {}", manifest.err().unwrap()).into());
+    }
 
-        safe(move || callback(Ok((manifest.unwrap(), minecraft_version))));
-    });
+    Ok((manifest.unwrap(), minecraft_version))
 }
 
 fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, session: &MicrosoftSession) -> Vec<Box<str>> {
@@ -98,7 +93,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     args
 }
 
-pub fn setup_library(lib: &Library, task_manager: &Arc<TasksCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn setup_library(lib: &Library, task_manager: &Rc<RefCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
     #[cfg(target_os = "linux")] {
         if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"linux").is_none() {
             return Ok(());
@@ -133,24 +128,34 @@ pub fn setup_library(lib: &Library, task_manager: &Arc<TasksCell<TaskManager>>) 
 
                 post_scripts.push(Box::new(move |download_task| download_task.post_unpack_natives(output_cl.clone(), get_data_dir().join("natives"))));
             }
-            let task = HttpDownloadTask::new(&download.url, output.to_str().unwrap(), post_scripts)?;
-            task_manager.get().submit_task("Downloads", &lib.name, &download.url, task);
+            let task = HttpDownloadTask::new(&download.url, output, post_scripts)?;
+            task_manager.borrow_mut().submit_task("Downloads", &lib.name, &download.url, task);
         }
     }
 
     Ok(())
 }
 
-pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Arc<TasksCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    
+pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskManager>>, conf: &Arc<Config>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    if fs::exists(PathBuf::from_str(&conf.jdk_dir)?.join("jre").join("bin"))? {
+        return Ok(());
+    }
+
+    let cache_jre = get_cache_dir().join(&*java_manifest.name);
+    let task = HttpDownloadTask::new(&java_manifest.download_url, cache_jre.clone(), vec![
+        Box::new(move |task| task.post_unpack_package(cache_jre.clone(), PathBuf::from_str(conf.jdk_dir.as_ref())?, true))
+    ])?;
+
+    task_manager.borrow_mut().submit_task("JRE Download", &java_manifest.name, &java_manifest.download_url, task);
     Ok(())
 }
 
-pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Arc<TasksCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
 
+    Ok(())
 }
 
-pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Arc<TasksCell<TaskManager>>, config: Arc<Config>) {
+pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Rc<RefCell<TaskManager>>, config: Arc<Config>) {
     let session = session.lock().unwrap();
     if session.is_none() {
         present_dialog_standalone("Session Error", "Seems like you are not logged in", DialogSeverity::Error);
@@ -166,7 +171,7 @@ pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Opt
         let java = java.unwrap();
         let args = get_args(&manifest, &config, version, session);
         
-        if let Err(err) = setup_jre(java, &task_manager) {
+        if let Err(err) = setup_jre(java, &task_manager, &config) {
             present_dialog_standalone("JRE Error", format!("Failed to setup jre: {}", err.to_string()).as_str(), DialogSeverity::Error);
             return;
         }

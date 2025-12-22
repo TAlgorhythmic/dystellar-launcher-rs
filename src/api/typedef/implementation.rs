@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::{Read, Write}, path::{Path, PathBuf}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
+use std::{error::Error, fs::{self, File}, io::{Read, Write}, path::{Path, PathBuf}, sync::atomic::{AtomicU8, AtomicUsize, Ordering}};
 
 use sha1::Sha1;
 use sha2::Digest;
@@ -49,12 +49,12 @@ pub struct HttpDownloadTask {
     pub total: AtomicUsize,
     pub progress: AtomicUsize,
     pub state: AtomicU8,
-    pub output: Box<str>,
+    pub output: PathBuf,
     pub post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>,
 }
 
 impl HttpDownloadTask {
-    pub fn new(url: &str, output: &str, post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>) -> Result<Self, Box<dyn Error + Send + Sync>>
+    pub fn new(url: &str, output: PathBuf, post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>) -> Result<Self, Box<dyn Error + Send + Sync>>
     {
         Ok(HttpDownloadTask {
             url: url.into(),
@@ -110,6 +110,90 @@ impl HttpDownloadTask {
                     out.write_all(&mut buf[..rd])?;
                 }
             }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn post_unpack_package(&mut self, path: PathBuf, output: PathBuf, skip_top: bool) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.state.store(TaskState::Unpacking.into(), Ordering::Relaxed);
+
+        let mut zip = ZipArchive::new(File::open(path)?)?;
+
+        if skip_top {
+            let top_folder = zip.file_names()
+                .filter(|f| f.ends_with('/') && f.matches('/').count() == 1)
+                .next();
+
+            if top_folder.is_none() {
+                return Err("No top folder found".into());
+            }
+
+            let top_folder: Box<str> = top_folder.unwrap().into();
+            zip.extract(&output)?;
+            let extracted = output.join(top_folder.as_ref());
+
+            for entry in fs::read_dir(&extracted)? {
+                let entry = entry?;
+                fs::rename(entry.path(), output.join(entry.file_name()))?;
+            }
+
+            fs::remove_dir(extracted)?;
+        } else {
+            zip.extract(output)?;
+        }
+
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn post_unpack_package(&mut self, path: PathBuf, output: PathBuf, skip_top: bool) -> Result<(), Box<dyn Error + Send + Sync>> {
+        use flate2::read::GzDecoder;
+        use tar::Archive;
+
+        self.state.store(TaskState::Unpacking.into(), Ordering::Relaxed);
+
+        let file = File::open(&path)?;
+        let decoder = GzDecoder::new(file);
+        let mut archive = Archive::new(decoder);
+
+        if skip_top {
+            let mut top: Option<PathBuf> = None;
+
+            for entry in archive.entries()? {
+                let entry = entry?;
+                let path = entry.path()?;
+
+                if let Some(first) = path.components().next() {
+                    let first = PathBuf::from(first.as_os_str());
+                    match &top {
+                        None => top = Some(first),
+                        Some(existing) if *existing != first => {
+                            return Err("Archive has multiple top-level entries".into());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
+            let top = top.ok_or("No top folder found")?;
+
+            let file = File::open(&path)?;
+            let decoder = GzDecoder::new(file);
+            let mut archive = Archive::new(decoder);
+
+            archive.unpack(&output)?;
+            let extracted = output.join(top);
+
+            for entry in fs::read_dir(&extracted)? {
+                let entry = entry?;
+                fs::rename(entry.path(), output.join(entry.file_name()))?;
+            }
+
+            fs::remove_dir(extracted)?;
+        } else {
+            archive.unpack(output)?;
         }
 
         Ok(())
