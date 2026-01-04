@@ -1,4 +1,4 @@
-use std::{error::Error, path::PathBuf, sync::LazyLock, thread, time::Duration};
+use std::{error::Error, sync::LazyLock, thread, time::Duration};
 
 use json::{object, stringify, JsonValue};
 use ureq::Agent;
@@ -59,9 +59,8 @@ where
         let access_token: Option<Box<str>> = res["access_token"].as_str().map(|s| s.into());
         let refresh_token: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
         let uhs: Option<Box<str>> = res["uhs"].as_str().map(|s| s.into());
-        let xuid: Option<Box<str>> = res["xuid"].as_str().map(|s| s.into());
 
-        if uuid.is_none() || username.is_none() || mc_token.is_none() || access_token.is_none() || refresh_token.is_none() || uhs.is_none() || xuid.is_none() {
+        if uuid.is_none() || username.is_none() || mc_token.is_none() || access_token.is_none() || refresh_token.is_none() || uhs.is_none() {
             safe(move || f(Err("Failed to process session: Malformed or incomplete data, please contact support.".into())));
             return;
         }
@@ -73,7 +72,6 @@ where
             refresh_token: refresh_token.unwrap(),
             minecraft_token: mc_token.unwrap(),
             uhs: uhs.unwrap(),
-            xuid: xuid.unwrap()
         })));
     });
 }
@@ -130,9 +128,8 @@ where
             let access_token: Option<Box<str>> = res["access_token"].as_str().map(|s| s.into());
             let refresh_token: Option<Box<str>> = res["refresh_token"].as_str().map(|s| s.into());
             let uhs: Option<Box<str>> = res["uhs"].as_str().map(|s| s.into());
-            let xuid: Option<Box<str>> = res["xuid"].as_str().map(|s| s.into());
 
-            if uuid.is_none() || username.is_none() || mc_token.is_none() || access_token.is_none() || refresh_token.is_none() || uhs.is_none() || xuid.is_none() {
+            if uuid.is_none() || username.is_none() || mc_token.is_none() || access_token.is_none() || refresh_token.is_none() || uhs.is_none() {
                 safe(move || callback(Err(ErrorData { title: "Session Error", description: "Data received from server is incomplete. Please contact support.".into() })));
                 return;
             }
@@ -142,8 +139,7 @@ where
                 access_token: access_token.unwrap(),
                 refresh_token: refresh_token.unwrap(),
                 minecraft_token: mc_token.unwrap(),
-                uhs: uhs.unwrap(),
-                xuid: xuid.unwrap()
+                uhs: uhs.unwrap()
             };
 
             safe(move || callback(Ok(session)));

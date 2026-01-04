@@ -6,7 +6,6 @@ pub struct MicrosoftSession {
     pub refresh_token: Box<str>,
     pub minecraft_token: Box<str>,
     pub uhs: Box<str>,
-    pub xuid: Box<str>
 }
 
 impl MicrosoftSession {

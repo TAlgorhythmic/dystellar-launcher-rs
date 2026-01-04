@@ -82,7 +82,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
         "--uuid".into(), session.uuid.clone(),
         "--accessToken".into(), session.minecraft_token.clone(),
         "--clientId".into(), CLIENT_ID.into(),
-        "--xuid".into(), session.xuid.clone(),
+        "--xuid".into(), session.uhs.clone(),
         "--versionType".into(), "release".into(),
         "--width".into(), config.resolution.x.to_string().into_boxed_str(),
         "--height".into(), config.resolution.y.to_string().into_boxed_str(),
