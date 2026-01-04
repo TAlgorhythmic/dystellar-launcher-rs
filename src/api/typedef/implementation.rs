@@ -68,7 +68,7 @@ impl HttpDownloadTask {
 
     pub fn post_verify_sha1(&mut self, path: PathBuf, sha1: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.state.store(TaskState::Verifying.into(), Ordering::Relaxed);
-        let mut file = File::open(path)?;
+        let mut file = File::open(&path)?;
         let mut buf = [0u8; 8192];
         let mut hasher = Sha1::new();
 
@@ -84,6 +84,7 @@ impl HttpDownloadTask {
         let hex = format!("{:x}", result);
 
         if hex.as_str() != sha1 {
+            fs::remove_file(path)?;
             return Err("Integrity test failed, sha1sum mismatch!".into());
         }
 
@@ -119,7 +120,7 @@ impl HttpDownloadTask {
     pub fn post_unpack_package(&mut self, path: PathBuf, output: PathBuf, skip_top: bool) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.state.store(TaskState::Unpacking.into(), Ordering::Relaxed);
 
-        let mut zip = ZipArchive::new(File::open(path)?)?;
+        let mut zip = ZipArchive::new(File::open(&path)?)?;
 
         if skip_top {
             let top_folder = zip.file_names()
@@ -143,6 +144,7 @@ impl HttpDownloadTask {
         } else {
             zip.extract(output)?;
         }
+        fs::remove_file(path)?;
 
         Ok(())
     }
@@ -196,6 +198,8 @@ impl HttpDownloadTask {
             archive.unpack(output)?;
         }
 
+        fs::remove_file(path)?;
+
         Ok(())
     }
 }
@@ -203,11 +207,12 @@ impl HttpDownloadTask {
 impl Task for HttpDownloadTask {
     fn run(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut res = get(&*self.url).call()?;
-        let total_size = res.headers().get(CONTENT_LENGTH).map(|e| e.to_str().unwrap().parse::<usize>().unwrap()).unwrap_or(0);
+        if let Some(total_size) = res.headers().get(CONTENT_LENGTH).map(|e| e.to_str().unwrap().parse::<usize>().unwrap()) {
+            self.total.store(total_size, Ordering::Relaxed);
+        }
         let mut reader = res.body_mut().as_reader();
         let mut file = File::create(&*self.output)?;
 
-        self.total.store(total_size, Ordering::Relaxed);
         self.state.store(TaskState::InProgress.into(), Ordering::Relaxed);
 
         let mut buf = [0u8; BUFFER_SIZE];

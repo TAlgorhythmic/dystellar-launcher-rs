@@ -1,6 +1,6 @@
 use crate::api::config::Config;
 use crate::api::control::dir_provider::get_data_dir;
-use crate::api::typedef::task_manager::{TaskManager, TasksCell};
+use crate::api::typedef::task_manager::TaskManager;
 use crate::generated::{AppState, Callbacks, DialogSeverity, Main, Mod, ModsUI, ModInfo};
 use crate::logic::{open_discord, open_youtube};
 use crate::ui::dialogs::{create_welcome_ui, present_dialog_standalone};
@@ -10,7 +10,7 @@ use crate::api::control::http::login_existing;
 use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
-use std::cell::{RefCell, UnsafeCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;

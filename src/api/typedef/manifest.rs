@@ -3,11 +3,9 @@ use std::{cmp::Ordering, error::Error};
 use json::JsonValue;
 
 pub struct AssetIndex {
-    id: Box<str>,
-    sha1: Box<str>,
-    size: isize,
-    total_size: isize,
-    url: Box<str>
+    pub id: Box<str>,
+    pub sha1: Box<str>,
+    pub url: Box<str>
 }
 
 pub struct Download {
@@ -25,12 +23,12 @@ pub struct Library {
 }
 
 pub struct MinecraftManifest {
-    pub args: Vec<Box<str>>,
     pub compliance_level: i32,
     pub downloads: Vec<Download>,
     pub java_version: i32,
     pub libs: Vec<Library>,
-    pub main_class: Box<str>
+    pub main_class: Box<str>,
+    pub asset_index: AssetIndex
 }
 
 pub struct JavaManifest {
@@ -72,9 +70,7 @@ impl TryFrom<JsonValue> for AssetIndex {
         Ok(Self {
             id: v["id"].as_str().ok_or("assetIndex.id missing")?.into(),
             sha1: v["sha1"].as_str().ok_or("assetIndex.sha1 missing")?.into(),
-            size: v["size"].as_isize().ok_or("assetIndex.size missing")?,
-            total_size: v["totalSize"].as_isize().ok_or("assetIndex.totalSize missing")?,
-            url: v["url"].as_str().ok_or("assetIndex.url missing")?.into(),
+            url: v["url"].as_str().ok_or("assetIndex.url missing")?.into()
         })
     }
 }
@@ -140,12 +136,12 @@ impl TryFrom<JsonValue> for MinecraftManifest {
         }
 
         Ok(Self {
-            args: vec![],
             compliance_level: value["complianceLevel"].as_i32().ok_or("complianceLevel missing")?,
             downloads,
             java_version: value["javaVersion"]["majorVersion"].as_i32().ok_or("javaVersion.majorVersion missing")?,
             libs,
-            main_class: value["mainClass"].as_str().ok_or("mainClass missing")?.into()
+            main_class: value["mainClass"].as_str().ok_or("mainClass missing")?.into(),
+            asset_index: value["assetIndex"].clone().try_into()?
         })
     }
 }

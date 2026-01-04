@@ -1,4 +1,4 @@
-use std::{cell::RefCell, error::Error, fs, path::PathBuf, rc::Rc, str::FromStr, sync::{Arc, Mutex}};
+use std::{cell::RefCell, error::Error, fs, path::PathBuf, rc::Rc, str::FromStr, sync::{Arc, Mutex, atomic::Ordering}};
 
 use itertools::Itertools;
 
@@ -136,7 +136,7 @@ pub fn setup_library(lib: &Library, task_manager: &Rc<RefCell<TaskManager>>) -> 
     Ok(())
 }
 
-pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskManager>>, conf: &Arc<Config>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskManager>>, conf: Arc<Config>) -> Result<(), Box<dyn Error + Send + Sync>> {
     if fs::exists(PathBuf::from_str(&conf.jdk_dir)?.join("jre").join("bin"))? {
         return Ok(());
     }
@@ -151,6 +151,32 @@ pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskMana
 }
 
 pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let json = get(&manifest.asset_index.url)?;
+    let objs = &json["objects"];
+
+    for entry in objs.entries() {
+        let (id, json) = entry;
+        let hash = json["hash"].as_str().ok_or("asset.hash missing")?;
+        let size = json["size"].as_usize().ok_or("asset.size missing")?;
+
+        let slice = hash.get(0..2).unwrap();
+        let output_folder = get_data_dir().join("assets/objects").join(slice);
+        let output = output_folder.join(hash);
+
+        if output.try_exists()? { continue; }
+
+        let url = format!("https://resources.download.minecraft.net/{}/{hash}", slice);
+
+        fs::create_dir_all(&output_folder)?;
+
+        let post_hash: Box<str> = hash.into();
+        let task = HttpDownloadTask::new(&url, output.clone(), vec![
+            Box::new(move |t| t.post_verify_sha1(output.clone(), &post_hash))
+        ])?;
+        task.total.store(size, Ordering::Relaxed);
+
+        task_manager.borrow_mut().submit_task("Downloads", id, &url, task);
+    }
 
     Ok(())
 }
@@ -171,7 +197,7 @@ pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Opt
         let java = java.unwrap();
         let args = get_args(&manifest, &config, version, session);
         
-        if let Err(err) = setup_jre(java, &task_manager, &config) {
+        if let Err(err) = setup_jre(java, &task_manager, config.clone()) {
             present_dialog_standalone("JRE Error", format!("Failed to setup jre: {}", err.to_string()).as_str(), DialogSeverity::Error);
             return;
         }
