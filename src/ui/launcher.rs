@@ -11,6 +11,7 @@ use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
 use std::cell::RefCell;
+use std::os::unix::process::CommandExt;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;
@@ -26,7 +27,9 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         let mods_ui = ModsUI::new().unwrap();
         let model: VecModel<Mod> = VecModel::default();
 
+        // Remove later
         model.push(Mod { author: "Algorhythmics".into(), default: false, description: "Test".into(), enabled: false, image: Image::default(), loading: false, name: "Test".into(), url: "Test".into(), version: "1.0".into() });
+
         let the_model = ModelRc::from(Rc::new(model).clone());
         mods_ui.set_mods(the_model);
 
@@ -54,7 +57,14 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         }
 
         let (manifest, version) = res.unwrap();
-        launch(manifest, &version, session.clone(), task_manager.clone(), config.clone());
+        let cmd = launch(manifest, &version, session.clone(), task_manager.clone(), config.clone());
+        if let Err(err) = &cmd {
+            present_dialog_standalone("Error", format!("Failed to launch the game: {}", err.to_string()).as_ref(), DialogSeverity::Error);
+            return;
+        }
+
+        let mut cmd = cmd.unwrap();
+        unsafe { cmd.pre_exec(|| Ok(())) };
     });
 }
 

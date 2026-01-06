@@ -1,11 +1,11 @@
-use std::{cell::RefCell, error::Error, fs, path::PathBuf, rc::Rc, str::FromStr, sync::{Arc, Mutex, atomic::Ordering}};
+use std::{cell::RefCell, error::Error, ffi::OsString, fs, path::PathBuf, process::Command, rc::Rc, str::FromStr, sync::{Arc, Mutex, atomic::Ordering}};
 
 use itertools::Itertools;
 
-use crate::{api::{config::Config, control::{dir_provider::{get_cache_dir, get_data_dir}, http::{BACKEND_URL, CLIENT_ID, fetch_manifest, get, get_jre_manifest}}, typedef::{implementation::HttpDownloadTask, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::TaskManager}}, generated::DialogSeverity, ui::dialogs::present_dialog_standalone};
+use crate::api::{config::Config, control::{dir_provider::{get_cache_dir, get_data_dir}, http::{CLIENT_ID, fetch_manifest, get, get_jre_manifest}}, typedef::{implementation::{HttpDownloadTask, post_unpack_natives, post_unpack_package, post_verify_sha1}, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::{SharedTaskState, TaskManager}}};
 
 pub fn get_manifest() -> Result<(MinecraftManifest, Box<str>), Box<dyn Error>> {
-    let launcher_specs = get(format!("{BACKEND_URL}/launcher").as_str());
+    let launcher_specs = get("/launcher");
     if launcher_specs.is_err() {
         return Err(launcher_specs.err().unwrap());
     }
@@ -26,22 +26,22 @@ pub fn get_manifest() -> Result<(MinecraftManifest, Box<str>), Box<dyn Error>> {
     Ok((manifest.unwrap(), minecraft_version))
 }
 
-fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, session: &MicrosoftSession) -> Vec<Box<str>> {
-    let mut args: Vec<Box<str>> = vec![
-        format!("-Xmx{}M", config.ram_allocation_mb).into_boxed_str(),
+fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, session: &MicrosoftSession) -> Result<Vec<OsString>, Box<dyn Error + Send + Sync>> {
+    let mut args: Vec<OsString> = vec![
+        format!("-Xmx{}M", config.ram_allocation_mb).into(),
         "-Xss1M".into(),
-        format!("-Djava.library.path={}", get_data_dir().join("natives").to_str().unwrap()).into_boxed_str(),
-        format!("-Djna.tmpdir={}", get_data_dir().join("natives").join("tmp").to_str().unwrap()).into_boxed_str(),
-        format!("-Dorg.lwjgl.system.SharedLibraryExtractPath={}", get_data_dir().join("natives").to_str().unwrap()).into_boxed_str(),
-        format!("-Dio.netty.native.workdir={}", get_data_dir().join("natives").join("tmp").to_str().unwrap()).into_boxed_str(),
+        format!("-Djava.library.path={}", get_data_dir().join("natives").to_str().unwrap()).into(),
+        format!("-Djna.tmpdir={}", get_data_dir().join("natives").join("tmp").to_str().unwrap()).into(),
+        format!("-Dorg.lwjgl.system.SharedLibraryExtractPath={}", get_data_dir().join("natives").to_str().unwrap()).into(),
+        format!("-Dio.netty.native.workdir={}", get_data_dir().join("natives").join("tmp").to_str().unwrap()).into(),
         "--Dminecraft.launcher.brand=Dystellar".into(),
         concat!("-Dminecraft.launcher.version=", env!("CARGO_PKG_VERSION")).into(),
     ];
 
     #[cfg(target_os = "windows")]
-    jvm_args.push("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump");
+    args.push("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump");
     #[cfg(target_os = "macos")]
-    jvm_args.push("-XstartOnFirstThread");
+    args.push("-XstartOnFirstThread");
 
     config.jvm_args.split(' ').filter(|e| !e.is_empty()).for_each(|e| args.push(e.into()));
 
@@ -50,7 +50,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     #[cfg(not(target_os = "windows"))]
     let separator = ":";
 
-    let classpath = manifest.libs
+    let mut classpath = manifest.libs
         .iter()
         .filter(|lib| {
             if lib.os.is_empty() { return true; }
@@ -69,43 +69,44 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
             .map(|d| d.path.as_ref().unwrap())
             .join(separator))
         .join(separator);
+    classpath.push_str(get_data_dir().join("client.jar").to_str().ok_or("Failed to convert client path to string. Are you using invalid characters in your filesystem?")?);
 
     args.push("-cp".into());
-    args.push(classpath.into_boxed_str());
-    args.push(manifest.main_class.clone());
+    args.push(classpath.into());
+    args.push(manifest.main_class.as_ref().into());
 
-    let mut game_args: Vec<Box<str>> = vec![
+    let mut game_args: Vec<OsString> = vec![
         "--username".into(), session.get_username().into(),
         "--version".into(), version.into(),
-        "--gameDir".into(), config.game_dir.clone(),
-        "--assetsDir".into(), format!("{}/assets", config.game_dir).into_boxed_str(),
-        "--uuid".into(), session.uuid.clone(),
-        "--accessToken".into(), session.minecraft_token.clone(),
+        "--gameDir".into(), config.game_dir.as_ref().into(),
+        "--assetsDir".into(), format!("{}/assets", config.game_dir).into(),
+        "--uuid".into(), session.uuid.as_ref().into(),
+        "--accessToken".into(), session.minecraft_token.as_ref().into(),
         "--clientId".into(), CLIENT_ID.into(),
-        "--xuid".into(), session.uhs.clone(),
+        "--xuid".into(), session.uhs.as_ref().into(),
         "--versionType".into(), "release".into(),
-        "--width".into(), config.resolution.x.to_string().into_boxed_str(),
-        "--height".into(), config.resolution.y.to_string().into_boxed_str(),
+        "--width".into(), config.resolution.x.to_string().into(),
+        "--height".into(), config.resolution.y.to_string().into(),
     ];
 
     args.append(&mut game_args);
 
-    args
+    Ok(args)
 }
 
 pub fn setup_library(lib: &Library, task_manager: &Rc<RefCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
     #[cfg(target_os = "linux")] {
-        if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"linux").is_none() {
+        if !lib.os.is_empty() && lib.os.iter().find(|os| &***os == "linux").is_none() {
             return Ok(());
         }
     }
     #[cfg(target_os = "windows")] {
-        if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"windows").is_none() {
+        if !lib.os.is_empty() && lib.os.iter().find(|os| &***os == "windows").is_none() {
             return Ok(());
         }
     }
     #[cfg(target_os = "macos")] {
-        if !lib.os.is_empty() && lib.os.iter().find(|os| ***os == *"osx").is_none() {
+        if !lib.os.is_empty() && lib.os.iter().find(|os| &***os == "osx").is_none() {
             return Ok(());
         }
     }
@@ -116,17 +117,17 @@ pub fn setup_library(lib: &Library, task_manager: &Rc<RefCell<TaskManager>>) -> 
     for download in &lib.downloads {
         let output = folder.join(download.path.as_ref().unwrap().as_ref());
 
-        if *download.id == *"artifact" && !fs::exists(&output)? {
+        if &*download.id == "artifact" && !fs::exists(&output)? {
             let _ = fs::create_dir_all(&output);
             let output_cl = output.clone();
             let sha1 = download.sha1.clone();
 
-            let mut post_scripts: Vec<Box<dyn Fn(&mut HttpDownloadTask) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>
-                = vec![Box::new(move |download_task| download_task.post_verify_sha1(output_cl.clone(), &sha1))];
+            let mut post_scripts: Vec<Box<dyn Fn(&SharedTaskState) -> Result<(), Box<dyn Error + Send + Sync>> + Send + Sync>>
+                = vec![Box::new(move |s| post_verify_sha1(s, output_cl.clone(), &sha1))];
             if lib.name.contains("native") {
                 let output_cl = output.clone();
 
-                post_scripts.push(Box::new(move |download_task| download_task.post_unpack_natives(output_cl.clone(), get_data_dir().join("natives"))));
+                post_scripts.push(Box::new(move |s| post_unpack_natives(s, output_cl.clone(), get_data_dir().join("natives"))));
             }
             let task = HttpDownloadTask::new(&download.url, output, post_scripts)?;
             task_manager.borrow_mut().submit_task("Downloads", &lib.name, &download.url, task);
@@ -143,7 +144,7 @@ pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskMana
 
     let cache_jre = get_cache_dir().join(&*java_manifest.name);
     let task = HttpDownloadTask::new(&java_manifest.download_url, cache_jre.clone(), vec![
-        Box::new(move |task| task.post_unpack_package(cache_jre.clone(), PathBuf::from_str(conf.jdk_dir.as_ref())?, true))
+        Box::new(move |s| post_unpack_package(s, cache_jre.clone(), PathBuf::from_str(conf.jdk_dir.as_ref())?, true))
     ])?;
 
     task_manager.borrow_mut().submit_task("JRE Download", &java_manifest.name, &java_manifest.download_url, task);
@@ -171,9 +172,9 @@ pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<Task
 
         let post_hash: Box<str> = hash.into();
         let task = HttpDownloadTask::new(&url, output.clone(), vec![
-            Box::new(move |t| t.post_verify_sha1(output.clone(), &post_hash))
+            Box::new(move |t| post_verify_sha1(t, output.clone(), &post_hash))
         ])?;
-        task.total.store(size, Ordering::Relaxed);
+        task.shared_state.total.store(size, Ordering::Relaxed);
 
         task_manager.borrow_mut().submit_task("Downloads", id, &url, task);
     }
@@ -181,36 +182,42 @@ pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<Task
     Ok(())
 }
 
-pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Rc<RefCell<TaskManager>>, config: Arc<Config>) {
-    let session = session.lock().unwrap();
-    if session.is_none() {
-        present_dialog_standalone("Session Error", "Seems like you are not logged in", DialogSeverity::Error);
-        return;
+pub fn setup_client(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let output = get_data_dir().join("client.jar");
+    if output.try_exists()? { return Ok(()); }
+
+    if let Some(client) = manifest.downloads.iter().find(|entry| entry.id.as_ref() == "client") {
+        let hash: Box<str> = client.sha1.clone();
+        let task = HttpDownloadTask::new(&client.url, output.clone(), vec![ Box::new(move |t| post_verify_sha1(t, output.clone(), hash.as_ref())) ])?;
+        task.shared_state.total.store(client.size, Ordering::Relaxed);
+
+        task_manager.borrow_mut().submit_task("Downloads", "Client Download", &client.url, task);
     }
+
+    Err("Failed to install client.".into())
+}
+
+pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Option<MicrosoftSession>>>, task_manager: Rc<RefCell<TaskManager>>, config: Arc<Config>) -> Result<Command, Box<dyn Error + Send + Sync>> {
+    let session = session.lock().unwrap();
 
     if let Some(session) = &*session {
-        let java = get_jre_manifest(&manifest);
-        if let Err(err) = &java {
-            present_dialog_standalone("JRE Error", format!("Failed to fetch java manifest from azul zulu: {}", err.to_string()).as_str(), DialogSeverity::Error);
-            return;
-        }
-        let java = java.unwrap();
-        let args = get_args(&manifest, &config, version, session);
-        
-        if let Err(err) = setup_jre(java, &task_manager, config.clone()) {
-            present_dialog_standalone("JRE Error", format!("Failed to setup jre: {}", err.to_string()).as_str(), DialogSeverity::Error);
-            return;
-        }
+        let java = get_jre_manifest(&manifest)?;
+
+        setup_client(&manifest, &task_manager)?;
+        setup_jre(java, &task_manager, config.clone())?;
 
         for lib in &manifest.libs {
-            if let Err(err) = setup_library(lib, &task_manager) {
-                present_dialog_standalone("Lib Error", format!("Failed to setup library {}: {}", lib.name, err.to_string()).as_str(), DialogSeverity::Error);
-                return;
-            }
+            setup_library(lib, &task_manager)?;
         }
-        if let Err(err) = setup_assets(&manifest, &task_manager) {
-            present_dialog_standalone("Asset Error", format!("Failed to setup assets: {}", err.to_string()).as_str(), DialogSeverity::Error);
-            return;
-        }
+        setup_assets(&manifest, &task_manager)?;
+
+        let args = get_args(&manifest, &config, version, session)?;
+
+        let mut process_cmd = Command::new("java");
+        process_cmd.args(args);
+
+        return Ok(process_cmd);
     }
+
+    Err("Seems like you are not logged in".into())
 }

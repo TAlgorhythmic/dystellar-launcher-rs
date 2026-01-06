@@ -12,7 +12,7 @@ pub struct Download {
     pub id: Box<str>,
     pub path: Option<Box<str>>,
     pub sha1: Box<str>,
-    pub size: isize,
+    pub size: usize,
     pub url: Box<str>
 }
 
@@ -84,7 +84,7 @@ impl TryFrom<(&str, &JsonValue)> for Download {
             id: id.into(),
             path: v["path"].as_str().map(|s| s.into()),
             sha1: v["sha1"].as_str().ok_or("download.sha1 missing")?.into(),
-            size: v["size"].as_isize().ok_or("download.size missing")?,
+            size: v["size"].as_usize().ok_or("download.size missing")?,
             url: v["url"].as_str().ok_or("download.url missing")?.into(),
         })
     }

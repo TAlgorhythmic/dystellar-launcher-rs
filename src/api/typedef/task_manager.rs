@@ -1,4 +1,4 @@
-use std::{cell::{RefCell, UnsafeCell}, collections::HashMap, error::Error, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, Ordering}}, thread, time::Duration};
+use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, AtomicU8, AtomicUsize, Ordering}}, thread, time::Duration};
 
 use slint::{Model, ModelRc, Timer, TimerMode, VecModel};
 
@@ -8,27 +8,32 @@ static NEXT_TASK_ID: AtomicI32 = AtomicI32::new(0);
 
 pub trait Task: Send + Sync + 'static {
     fn run(&mut self) -> Result<(), Box<dyn Error + Send + Sync>>;
-    fn get_progress(&self) -> f32;
-    fn get_state(&self) -> TaskState;
-    fn claim(&mut self);
+    fn get_shared_state(&self) -> Arc<SharedTaskState>;
 }
 
-struct TaskWrapper {
-    task: UnsafeCell<Box<dyn Task>>
+pub struct SharedTaskState {
+    pub total: AtomicUsize,
+    pub progress: AtomicUsize,
+    pub state: AtomicU8,
 }
 
-impl TaskWrapper {
-    pub fn new(task: impl Task) -> Self {
-        Self { task: UnsafeCell::new(Box::new(task)) }
+impl SharedTaskState {
+    pub fn new() -> Self {
+        Self { total: AtomicUsize::new(0), progress: AtomicUsize::new(0), state: AtomicU8::new(TaskState::Waiting.into()) }
+    }
+
+    pub fn get_progress(&self) -> f32 {
+        self.progress.load(Ordering::Relaxed) as f32 / self.total.load(Ordering::Relaxed) as f32
+    }
+
+    fn claim(&self) {
+        self.state.store(TaskState::Starting.into(), Ordering::Relaxed);
     }
 }
 
-unsafe impl Send for TaskWrapper {}
-unsafe impl Sync for TaskWrapper {}
-
 pub struct TaskManager {
     groups_ui: Rc<VecModel<TasksGroup>>,
-    tasks: Arc<Mutex<HashMap<i32, Arc<TaskWrapper>>>>,
+    tasks: Arc<Mutex<HashMap<i32, (Arc<SharedTaskState>, Option<Box<dyn Task>>)>>>,
     timer: Rc<Timer>,
     running: AtomicBool,
     semaphore: Arc<Semaphore>,
@@ -58,23 +63,29 @@ impl TaskManager {
 
             thread::spawn(move || {
                 loop {
-                    let guard = map.lock().unwrap();
+                    let mut guard = map.lock().unwrap();
                     if guard.is_empty() {
                         return;
                     }
 
-                    let entry = guard.iter().find(|e| unsafe {(&*e.1.task.get()).get_state()} == TaskState::Waiting);
-                    if entry.is_none() {
+                    let mut id = 0;
+                    let mut task = None;
+                    for (i, t) in guard.iter_mut() {
+                        if t.1.is_some() {
+                            task = Some(t);
+                            id = *i;
+                        }
+                    }
+
+                    if task.is_none() {
                         semaphore.acquire();
                         semaphore.release();
                         continue;
                     }
                     
-                    let (id, task) = entry.unwrap();
-                    let id = *id;
-                    let task = unsafe {&mut *task.clone().task.get()};
-                    task.claim();
-
+                    let (shared_state, task) = task.unwrap();
+                    shared_state.claim();
+                    let mut task = task.take().unwrap();
                     drop(guard);
                     semaphore.acquire();
                     if let Err(err) = task.run() {
@@ -122,19 +133,22 @@ impl TaskManager {
                         removals.push(task.id);
                         break;
                     }
-                    let handle = unsafe { &*handle.unwrap().task.get() };
-                    task.state = handle.get_state();
+                    let handle = &handle.unwrap().0;
+                    task.state = handle.state.load(Ordering::Relaxed).into();
                     task.progress = handle.get_progress();
 
                     group.get_model().set_row_data(j, task);
                 }
             }
+
+            drop(tasks_map);
             if !removals.is_empty() {
                 let mut i = 0;
                 while i < groups_ui.row_count() {
                     let group = groups_ui.row_data(i).unwrap();
                     let mut j = 0;
                     while j < group.tasks.row_count() {
+                        println!("Test?");
                         let task = group.tasks.row_data(j).unwrap();
 
                         if removals.iter().find(|id| **id == task.id).is_some() {
@@ -163,20 +177,25 @@ impl TaskManager {
             self.groups_ui.row_data(self.groups_ui.row_count() - 1).unwrap()
         });
         let id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
-        let task = Arc::new(TaskWrapper::new(task));
+        let task: (Arc<SharedTaskState>, Option<Box<dyn Task>>) = (task.get_shared_state(), Some(Box::new(task)));
 
         group.get_model().push(TaskData::new(id, name, details));
         tasks.insert(id, task);
         drop(tasks);
 
+        self.semaphore.release();
         if should_start {
             self.semaphore.reset();
-            self.semaphore.release();
             self.start_running();
         }
     }
 
     pub fn on_finish(&mut self, f: impl Fn() + Send + Sync + 'static) {
+        if !self.running.load(Ordering::Relaxed) {
+            f();
+            return;
+        }
+
         self.on_finish.replace(Some(Box::new(f)));
     }
 }

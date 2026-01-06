@@ -26,7 +26,7 @@ export component FallbackDialog inherits Window {
 					colorize: white;
 					source: root.dialog-data.severity == DialogSeverity.info ? @image-url("assets/icons/info.svg") : @image-url("assets/icons/error.svg");
 				}
-				Text { text: dialog-data.content; }
+				Text { text: dialog-data.content; wrap: word-wrap; }
 			}
 			HorizontalLayout {
 				alignment: end;

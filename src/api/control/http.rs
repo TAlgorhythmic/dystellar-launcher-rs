@@ -12,6 +12,12 @@ pub static BACKEND_URL: &str = env!("BACKEND_URL");
 pub static CLIENT_ID: &str = env!("CLIENT_ID");
 static AGENT: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().http_status_as_error(false).timeout_global(Some(Duration::from_secs(20))).build().into());
 
+pub fn get_json(url: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
+    let req = AGENT.get(url).call()?;
+
+    Ok(json::parse(&req.into_body().read_to_string()?)?)
+}
+
 pub fn get(path: &str) -> Result<JsonValue, Box<dyn Error + Send + Sync>> {
     let url = format!("{}{}", BACKEND_URL, path);
 
@@ -173,11 +179,11 @@ where
 }
 
 pub fn fetch_manifest(version: &str) -> Result<MinecraftManifest, Box<dyn Error + Send + Sync>> {
-    let json = get("https://piston-meta.mojang.com/mc/game/version_manifest.json")?;
+    let json = get_json("https://piston-meta.mojang.com/mc/game/version_manifest.json")?;
 
     let version = json["versions"].members().find(|v| v["id"].as_str().map(|v| v == version).unwrap_or(false)).ok_or("Version not found")?;
     let url = version["url"].as_str().ok_or("Url not found in version")?;
-    let manifest_json = get(url)?;
+    let manifest_json = get_json(url)?;
 
     Ok(MinecraftManifest::try_from(manifest_json)?)
 }
@@ -206,5 +212,5 @@ pub fn get_jre_manifest(manifest: &MinecraftManifest) -> Result<JavaManifest, Bo
 
     let url = format!("https://api.azul.com/metadata/v1/zulu/packages/?java_version={java_version}&os={os}&arch={arch}&archive_type={archive_type}&java_package_type=jre&javafx_bundled=false&crac_supported=false&support_term=lts&latest=true&java_package_features=headfull&availability_types=CA&certifications=tck");
 
-    JavaManifest::try_from(get(&url)?)
+    JavaManifest::try_from(get_json(&url)?)
 }
