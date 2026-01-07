@@ -39,7 +39,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     ];
 
     #[cfg(target_os = "windows")]
-    args.push("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump");
+    args.push("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump".into());
     #[cfg(target_os = "macos")]
     args.push("-XstartOnFirstThread");
 
