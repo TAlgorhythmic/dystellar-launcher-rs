@@ -38,7 +38,7 @@ pub struct TaskManager {
     running: AtomicBool,
     semaphore: Arc<Semaphore>,
     threads: i16,
-    on_finish: Rc<RefCell<Option<Box<dyn Fn() + Send + Sync + 'static>>>>
+    on_finish: Rc<RefCell<Option<Box<dyn FnMut() + Send + Sync + 'static>>>>
 }
 
 impl TaskManager {
@@ -57,7 +57,7 @@ impl TaskManager {
     }
 
     fn start_threads(&self) {
-        for _ in 0..self.threads {
+        for _ in 0..self.threads - 1 {
             let semaphore = self.semaphore.clone();
             let map = self.tasks.clone();
 
@@ -78,6 +78,7 @@ impl TaskManager {
                     }
 
                     if task.is_none() {
+                        drop(guard);
                         semaphore.acquire();
                         semaphore.release();
                         continue;
@@ -110,7 +111,7 @@ impl TaskManager {
 
         self.timer.start(TimerMode::Repeated, Duration::from_millis(80), move || {
             if groups_ui.row_count() == 0 {
-                if let Some(f) = &*on_finish.borrow() {
+                if let Some(f) = &mut *on_finish.borrow_mut() {
                     f();
                 }
 
@@ -143,24 +144,25 @@ impl TaskManager {
 
             drop(tasks_map);
             if !removals.is_empty() {
-                let mut i = 0;
+                let mut i: usize = 0;
                 while i < groups_ui.row_count() {
                     let group = groups_ui.row_data(i).unwrap();
                     let mut j = 0;
                     while j < group.tasks.row_count() {
-                        println!("Test?");
                         let task = group.tasks.row_data(j).unwrap();
 
                         if removals.iter().find(|id| **id == task.id).is_some() {
                             group.get_model().remove(j);
-                            j -= 1;
+                            continue;
                         }
+                        j += 1;
                     }
 
                     if group.get_model().row_count() == 0 {
                         groups_ui.remove(i);
-                        i -= 1;
+                        continue;
                     }
+                    i += 1;
                 }
             }
         });
@@ -183,14 +185,16 @@ impl TaskManager {
         tasks.insert(id, task);
         drop(tasks);
 
-        self.semaphore.release();
         if should_start {
             self.semaphore.reset();
+            self.semaphore.release();
             self.start_running();
+        } else {
+            self.semaphore.release();
         }
     }
 
-    pub fn on_finish(&mut self, f: impl Fn() + Send + Sync + 'static) {
+    pub fn on_finish(&mut self, mut f: impl FnMut() + Send + Sync + 'static) {
         if !self.running.load(Ordering::Relaxed) {
             f();
             return;

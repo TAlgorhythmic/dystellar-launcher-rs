@@ -76,8 +76,8 @@ impl Task for HttpDownloadTask {
 
         let mut buf = [0u8; BUFFER_SIZE];
 
+        println!("Task {} running...", self.url);
         while let n = BodyReader::read(&mut reader, &mut buf)? && n > 0 {
-            println!("Task {} running...", self.url);
             file.write_all(&buf[..n])?;
             self.shared_state.progress.fetch_add(n, Ordering::Relaxed);
         }
@@ -125,6 +125,7 @@ pub fn post_verify_sha1(shared: &SharedTaskState, path: PathBuf, sha1: &str) -> 
 pub fn post_unpack_natives(shared: &SharedTaskState, path: PathBuf, output: PathBuf) -> Result<(), Box<dyn Error + Send + Sync>> {
     shared.state.store(TaskState::Unpacking.into(), Ordering::Relaxed);
 
+    fs::create_dir_all(&output)?;
     let mut zip = ZipArchive::new(File::open(path)?)?;
 
     for i in 0..zip.len() {

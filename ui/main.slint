@@ -62,25 +62,10 @@ export component Main inherits Window {
 
 	in-out property<AppState> app_state: loading;
 
-	in-out property <bool> events_loading: true;
+	in-out property<bool> events_loading: true;
 	in-out property<[Content]> events: [];
-	in-out property <bool> updates_loading: true;
+	in-out property<bool> updates_loading: true;
 	in-out property<[Content]> updates: [];
-
-	TaskManager {
-		groups: parent.groups;
-		visible: groups.length > 0;
-		opacity: groups.length > 0 ? 1.0 : 0.0;
-		width: 860px;
-		height: 640px;
-		x: (parent.width - self.width) / 2;
-		y: (parent.height - self.height) / 2 - (groups.length > 0 ? 0 : 20px);
-
-		animate opacity, y {
-			easing: ease-in-out;
-			duration: 200ms;
-		}
-	}
 
 	// Main window content
 	VerticalLayout {
@@ -137,6 +122,27 @@ export component Main inherits Window {
 				Text { text: "Dystellar Network"; }
 			}
 		}
+	}
+
+	TaskManager {
+		groups: parent.groups;
+		visible: groups.length > 0;
+		opacity: 0.0;
+		width: 860px;
+		height: 640px;
+		x: (parent.width - self.width) / 2;
+		y: (parent.height - self.height) / 2 - 20px;
+
+		states [
+		    in_progress when self.visible : {
+				y: (root.height - root.height) / 2;
+				opacity: 1.0;
+
+				in-out {
+					animate y, opacity { duration: 230ms; easing: ease-in-out; }
+				}
+			}
+		]
 	}
 }
 

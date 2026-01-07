@@ -2,6 +2,7 @@ import { HoverableText } from "hoverable_text.slint";
 import { TasksGroup, TaskData, TaskState } from "typedef/type.slint";
 import { ProgressBar } from "progress_bar.slint";
 import { ButtonRegular } from "button_regular.slint";
+import { ListView } from "std-widgets.slint";
 
 component Tooltip inherits Rectangle {
 	in-out property <string> text: "";
@@ -59,11 +60,11 @@ component Group inherits VerticalLayout {
 	}
 }
 
-export component TaskManager inherits PopupWindow {
+export component TaskManager inherits Rectangle {
 	in-out property <[TasksGroup]> groups: [];
 	in-out property <float> total_progress: 0.0;
-
-	callback cancel();
+	background: #313131;
+	border-radius: 24px;
 
 	VerticalLayout {
 		vertical-stretch: 1;
@@ -73,27 +74,16 @@ export component TaskManager inherits PopupWindow {
 		spacing: 6px;
 		HorizontalLayout {
 			spacing: 6px;
-			Text { text: "Tasks"; }
+			Text { text: "Tasks"; color: white; }
 			Rectangle { horizontal-stretch: 1; height: 1px; border-width: 1px; border-color: white; border-radius: 2px; }
 			ProgressBar { progress: total_progress; }
 		}
-		Flickable {
-			viewport-height: parent.height * 0.8;
-			viewport-width: parent.width;
-			VerticalLayout {
-				spacing: 6px;
-				alignment: start;
-				for group in groups: Group {
-					group: group;
-				}
+		ListView {
+			height: parent.height * 0.8;
+			width: parent.width;
+			for group in groups: Group {
+				group: group;
 			}
-		}
-		ButtonRegular {
-			primary: false;
-			width: 150px;
-			height: 40px;
-			on_click => { cancel(); }
-			Text { text: "Cancel"; }
 		}
 	}
 }

@@ -2,7 +2,7 @@ use std::{cell::RefCell, error::Error, ffi::OsString, fs, path::PathBuf, process
 
 use itertools::Itertools;
 
-use crate::api::{config::Config, control::{dir_provider::{get_cache_dir, get_data_dir}, http::{CLIENT_ID, fetch_manifest, get, get_jre_manifest}}, typedef::{implementation::{HttpDownloadTask, post_unpack_natives, post_unpack_package, post_verify_sha1}, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::{SharedTaskState, TaskManager}}};
+use crate::api::{config::Config, control::{dir_provider::{get_cache_dir, get_data_dir}, http::{CLIENT_ID, fetch_manifest, get, get_jre_manifest, get_json}}, typedef::{implementation::{HttpDownloadTask, post_unpack_natives, post_unpack_package, post_verify_sha1}, manifest::{JavaManifest, Library, MinecraftManifest}, ms_session::MicrosoftSession, task_manager::{SharedTaskState, TaskManager}}};
 
 pub fn get_manifest() -> Result<(MinecraftManifest, Box<str>), Box<dyn Error>> {
     let launcher_specs = get("/launcher");
@@ -34,7 +34,7 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
         format!("-Djna.tmpdir={}", get_data_dir().join("natives").join("tmp").to_str().unwrap()).into(),
         format!("-Dorg.lwjgl.system.SharedLibraryExtractPath={}", get_data_dir().join("natives").to_str().unwrap()).into(),
         format!("-Dio.netty.native.workdir={}", get_data_dir().join("natives").join("tmp").to_str().unwrap()).into(),
-        "--Dminecraft.launcher.brand=Dystellar".into(),
+        "-Dminecraft.launcher.brand=Dystellar".into(),
         concat!("-Dminecraft.launcher.version=", env!("CARGO_PKG_VERSION")).into(),
     ];
 
@@ -112,13 +112,13 @@ pub fn setup_library(lib: &Library, task_manager: &Rc<RefCell<TaskManager>>) -> 
     }
 
     let folder = get_data_dir().join("libs");
-    let _ = fs::create_dir(&folder);
+    let _ = fs::create_dir_all(&folder);
 
     for download in &lib.downloads {
         let output = folder.join(download.path.as_ref().unwrap().as_ref());
 
         if &*download.id == "artifact" && !fs::exists(&output)? {
-            let _ = fs::create_dir_all(&output);
+            let _ = fs::create_dir_all(output.parent().unwrap());
             let output_cl = output.clone();
             let sha1 = download.sha1.clone();
 
@@ -138,7 +138,7 @@ pub fn setup_library(lib: &Library, task_manager: &Rc<RefCell<TaskManager>>) -> 
 }
 
 pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskManager>>, conf: Arc<Config>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    if fs::exists(PathBuf::from_str(&conf.jdk_dir)?.join("jre").join("bin"))? {
+    if fs::exists(PathBuf::from_str(&conf.jdk_dir)?.join("bin"))? {
         return Ok(());
     }
 
@@ -152,7 +152,7 @@ pub fn setup_jre(java_manifest: JavaManifest, task_manager: &Rc<RefCell<TaskMana
 }
 
 pub fn setup_assets(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<TaskManager>>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let json = get(&manifest.asset_index.url)?;
+    let json = get_json(&manifest.asset_index.url)?;
     let objs = &json["objects"];
 
     for entry in objs.entries() {
@@ -192,6 +192,7 @@ pub fn setup_client(manifest: &MinecraftManifest, task_manager: &Rc<RefCell<Task
         task.shared_state.total.store(client.size, Ordering::Relaxed);
 
         task_manager.borrow_mut().submit_task("Downloads", "Client Download", &client.url, task);
+        return Ok(());
     }
 
     Err("Failed to install client.".into())

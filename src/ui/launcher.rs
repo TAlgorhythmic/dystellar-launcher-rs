@@ -11,6 +11,7 @@ use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
 use std::cell::RefCell;
+use std::fs;
 use std::os::unix::process::CommandExt;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
@@ -45,10 +46,15 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         
         mods_ui.show().unwrap();
     });
+
     callbacks.on_launch(move || {
         let session = session.clone();
         let task_manager = task_manager.clone();
         let config = config.clone();
+        let weak = ui.clone();
+        let strong = weak.upgrade().unwrap();
+
+        strong.set_app_state(AppState::Loading);
         let res = get_manifest();
 
         if let Err(err) = &res {
@@ -64,7 +70,12 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         }
 
         let mut cmd = cmd.unwrap();
-        unsafe { cmd.pre_exec(|| Ok(())) };
+
+        task_manager.borrow_mut().on_finish(move || {
+            let strong = weak.upgrade().unwrap();
+            let _ = cmd.status();
+            strong.set_app_state(AppState::Ready);
+        });
     });
 }
 
@@ -85,6 +96,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let session = s_mutex.lock().unwrap();
     let ui = Main::new()?;
     let config = Arc::new(Config::load(get_data_dir().join("config.json").to_str().unwrap())?);
+    fs::create_dir_all(&*config.jdk_dir)?;
+    fs::create_dir_all(&*config.cache_dir)?;
+    fs::create_dir_all(&*config.game_dir)?;
+
     let groups = Rc::new(VecModel::from(vec![]));
     let task_manager = Rc::new(RefCell::new(TaskManager::new(groups.clone())));
 
