@@ -221,7 +221,10 @@ pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Opt
             println!("{:?}", arg);
         }
 
-        let mut process_cmd = Command::new("java");
+        #[cfg(target_os = "windows")]
+        let mut process_cmd = Command::new(PathBuf::from_str(&config.jdk_dir)?.join("bin/java.exe"));
+        #[cfg(not(target_os = "windows"))]
+        let mut process_cmd = Command::new(PathBuf::from_str(&config.jdk_dir)?.join("bin/java"));
         process_cmd.args(args);
 
         return Ok(process_cmd);
