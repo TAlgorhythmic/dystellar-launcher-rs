@@ -50,6 +50,8 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
     #[cfg(not(target_os = "windows"))]
     let separator = ":";
 
+    let libs = get_data_dir().join("libs");
+
     let mut classpath = manifest.libs
         .iter()
         .filter(|lib| {
@@ -66,9 +68,10 @@ fn get_args(manifest: &MinecraftManifest, config: &Arc<Config>, version: &str, s
         })
         .map(|lib| lib.downloads
             .iter()
-            .map(|d| d.path.as_ref().unwrap())
+            .map(|d| libs.join(d.path.as_ref().unwrap().as_ref()).to_string_lossy().to_string())
             .join(separator))
         .join(separator);
+    classpath.push_str(separator);
     classpath.push_str(get_data_dir().join("client.jar").to_str().ok_or("Failed to convert client path to string. Are you using invalid characters in your filesystem?")?);
 
     args.push("-cp".into());
@@ -213,6 +216,10 @@ pub fn launch(manifest: MinecraftManifest, version: &str, session: Arc<Mutex<Opt
         setup_assets(&manifest, &task_manager)?;
 
         let args = get_args(&manifest, &config, version, session)?;
+
+        for arg in &args {
+            println!("{:?}", arg);
+        }
 
         let mut process_cmd = Command::new("java");
         process_cmd.args(args);
