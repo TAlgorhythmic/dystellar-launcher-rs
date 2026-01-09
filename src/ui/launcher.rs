@@ -12,7 +12,6 @@ use slint::{ComponentHandle, Image, ModelRc, VecModel, Weak};
 use crate::{api::{control::database::retrieve_session, typedef::ms_session::MicrosoftSession}};
 use std::cell::RefCell;
 use std::fs;
-use std::os::unix::process::CommandExt;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::error::Error;
@@ -131,6 +130,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             *guard = Some(session);
             ui.set_app_state(AppState::Ready);
         });
+    } else {
+        ui.set_app_state(AppState::Ready);
     }
     drop(session);
     ui.run()?;

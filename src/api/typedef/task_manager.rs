@@ -33,7 +33,7 @@ impl SharedTaskState {
 
 pub struct TaskManager {
     groups_ui: Rc<VecModel<TasksGroup>>,
-    tasks: Arc<Mutex<HashMap<i32, (Arc<SharedTaskState>, Option<Box<dyn Task>>)>>>,
+    tasks: Arc<Mutex<Vec<(i32, Arc<SharedTaskState>, Option<Box<dyn Task>>)>>>,
     timer: Rc<Timer>,
     running: AtomicBool,
     semaphore: Arc<Semaphore>,
@@ -47,7 +47,7 @@ impl TaskManager {
 
         Self {
             groups_ui: model,
-            tasks: Arc::new(Mutex::new(HashMap::new())),
+            tasks: Arc::new(Mutex::new(vec![])),
             timer: Rc::new(Timer::default()),
             running: AtomicBool::new(false),
             semaphore: Arc::new(Semaphore::new(0)),
@@ -68,23 +68,25 @@ impl TaskManager {
                         return;
                     }
 
-                    let mut id = 0;
-                    let mut task = None;
-                    for (i, t) in guard.iter_mut() {
-                        if t.1.is_some() {
-                            task = Some(t);
-                            id = *i;
+                    let mut idx = None;
+                    for i in 0..guard.len() {
+                        let entry = &guard[i];
+                        if entry.2.is_some() {
+                            idx = Some(i);
+                            break;
                         }
                     }
 
-                    if task.is_none() {
+                    if idx.is_none() {
                         drop(guard);
                         semaphore.acquire();
                         semaphore.release();
                         continue;
                     }
-                    
-                    let (shared_state, task) = task.unwrap();
+
+                    let idx = idx.unwrap();
+                    let (_, shared_state, task) = &mut guard[idx];
+
                     shared_state.claim();
                     let mut task = task.take().unwrap();
                     drop(guard);
@@ -94,7 +96,7 @@ impl TaskManager {
                     }
 
                     let mut guard = map.lock().unwrap();
-                    guard.remove(&id);
+                    guard.remove(idx);
                     semaphore.release();
                 }
             });
@@ -128,13 +130,13 @@ impl TaskManager {
                 let group = groups_ui.row_data(i).unwrap();
                 for j in 0..group.tasks.row_count() {
                     let mut task = group.tasks.row_data(j).unwrap();
-                    let handle = tasks_map.get(&task.id);
+                    let handle = tasks_map.iter().find(|i| i.0 == task.id);
 
                     if handle.is_none() {
                         removals.push(task.id);
                         break;
                     }
-                    let handle = &handle.unwrap().0;
+                    let (_, handle, _) = handle.unwrap();
                     task.state = handle.state.load(Ordering::Relaxed).into();
                     task.progress = handle.get_progress();
 
@@ -179,10 +181,10 @@ impl TaskManager {
             self.groups_ui.row_data(self.groups_ui.row_count() - 1).unwrap()
         });
         let id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
-        let task: (Arc<SharedTaskState>, Option<Box<dyn Task>>) = (task.get_shared_state(), Some(Box::new(task)));
+        let task: (i32, Arc<SharedTaskState>, Option<Box<dyn Task>>) = (id, task.get_shared_state(), Some(Box::new(task)));
 
         group.get_model().push(TaskData::new(id, name, details));
-        tasks.insert(id, task);
+        tasks.push(task);
         drop(tasks);
 
         if should_start {
