@@ -118,7 +118,7 @@ impl TaskManager {
         let semaphore = self.semaphore.clone();
         let threads = self.threads;
 
-        self.timer.start(TimerMode::Repeated, Duration::from_millis(300), move || {
+        self.timer.start(TimerMode::Repeated, Duration::from_millis(150), move || {
             if groups_ui.row_count() == 0 {
                 if let Some(f) = &mut *on_finish.borrow_mut() { f(); }
 

@@ -2,7 +2,7 @@ import { HoverableText } from "hoverable_text.slint";
 import { TasksGroup, TaskData, TaskState } from "typedef/type.slint";
 import { ProgressBar } from "progress_bar.slint";
 import { ButtonRegular } from "button_regular.slint";
-import { ListView } from "std-widgets.slint";
+import { ListView, VerticalBox } from "std-widgets.slint";
 
 component Tooltip inherits Rectangle {
 	in-out property <string> text: "";
@@ -34,7 +34,12 @@ component TaskItem inherits HorizontalLayout {
 	padding-left: 6px;
 	alignment: space-between;
 	area := TouchArea {}
-	Text { text: task.name; }
+	Text {
+		text: task.name;
+		width: 360px;
+		overflow: elide;
+		horizontal-alignment: left;
+	}
 	/*Tooltip {
 		opacity: area.has-hover ? 1.0 : 0.0;
 		text: task.details;
@@ -57,13 +62,14 @@ component Group inherits VerticalLayout {
 	in-out property <TasksGroup> group;
 
 	width: 100%;
-	padding-left: 6px;
+	padding-left: 12px;
 	spacing: 6px;
 	Text {
 		text: group.name;
 	}
-	for task in group.tasks: TaskItem {
-		task: task;
+	for i in min(16, group.tasks.length): TaskItem {
+		width: 100%;
+		task: group.tasks[i];
 	}
 }
 
@@ -86,15 +92,11 @@ export component TaskManager inherits Rectangle {
 			ProgressBar { progress: total_progress; }
 		}
 		ListView {
-			enabled: true;
-			mouse-drag-pan-enabled: true;
-			viewport-width: parent.width;
-			viewport-height: parent.height * 0.8;
-			width: parent.width;
-			height: parent.height * 0.8;
+			width: 100%;
+			height: 80%;
 			
-			for group in groups: Group {
-				group: group;
+			for i in min(4, groups.length): Group {
+				group: groups[i];
 			}
 		}
 	}
