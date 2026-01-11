@@ -31,9 +31,8 @@ component Tooltip inherits Rectangle {
 component TaskItem inherits HorizontalLayout {
 	in-out property <TaskData> task;
 
-	padding-left: 6px;
 	alignment: space-between;
-	area := TouchArea {}
+	padding-left: 12px;
 	Text {
 		text: task.name;
 		width: 360px;
@@ -45,7 +44,7 @@ component TaskItem inherits HorizontalLayout {
 		text: task.details;
 	}*/
 	ProgressBar {
-		width: 150px;
+		width: 170px;
 		height: 35px;
 		color: task.state == TaskState.finished ? #056800 : task.state == TaskState.failed ? #680000 : #006856;
 		progress: task.progress;
@@ -92,7 +91,7 @@ export component TaskManager inherits Rectangle {
 			ProgressBar { progress: total_progress; }
 		}
 		ListView {
-			width: 100%;
+			width: 90%;
 			height: 80%;
 			
 			for i in min(4, groups.length): Group {
