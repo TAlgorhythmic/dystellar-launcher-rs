@@ -53,7 +53,7 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
         let weak = ui.clone();
         let strong = weak.upgrade().unwrap();
 
-        strong.set_app_state(AppState::Loading);
+        strong.set_app_state(AppState::Launching);
         let res = get_manifest();
 
         if let Err(err) = &res {
@@ -72,6 +72,7 @@ fn setup_callbacks(ui: Weak<Main>, config: Arc<Config>, session: Arc<Mutex<Optio
 
         task_manager.borrow_mut().on_finish(move || {
             let strong = weak.upgrade().unwrap();
+            strong.set_app_state(AppState::Running);
             let _ = cmd.status();
             strong.set_app_state(AppState::Ready);
         });

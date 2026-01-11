@@ -1,9 +1,10 @@
 export component ProgressBar {
 	in-out property <float> progress: 0.5;
 	in-out property <color> color: #006856;
+	in-out property <string> content;
 
 	animate progress, color {
-		duration: 140ms;
+		duration: 200ms;
 		easing: ease-in-out;
 	}
 
@@ -30,6 +31,12 @@ export component ProgressBar {
 				border-radius: 60px;
 				border-color: root.color.brighter(0.3);
 			}
+		}
+		Text {
+			color: white;
+			x: (root.width - self.width) / 2;
+			y: (root.height - self.height) / 2;
+			text: content;
 		}
 	}
 }

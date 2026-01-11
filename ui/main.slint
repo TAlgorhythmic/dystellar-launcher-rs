@@ -17,6 +17,8 @@ import { CleanSpinner } from "clean_spinner.slint";
 
 export enum AppState {
 	loading,
+	launching,
+	running,
 	network_error,
 	session_error,
 	ready
@@ -96,7 +98,10 @@ export component Main inherits Window {
 								alignment: center;
 								Text {
 									font-size: 32px;
-									text: app_state == AppState.ready ? "Launch" : app_state == AppState.session-error || app_state == AppState.network-error ? "Error" : "Loading...";
+									text: app_state == AppState.ready ? "Launch" :
+										app_state == AppState.session-error || app_state == AppState.network-error ? "Error" :
+										app_state == AppState.launching ? "Launching" :
+										app_state == AppState.running ? "Running" : "Loading...";
 								}
 							}
 						}

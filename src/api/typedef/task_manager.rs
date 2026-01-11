@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, AtomicU8, AtomicUsize, Ordering}}, thread, time::Duration};
+use std::{cell::RefCell, cmp::min, error::Error, rc::Rc, sync::{Arc, Condvar, Mutex, atomic::{AtomicBool, AtomicI32, AtomicU8, AtomicUsize, Ordering}}, thread, time::Duration};
 
 use slint::{Model, ModelRc, Timer, TimerMode, VecModel};
 
@@ -85,7 +85,8 @@ impl TaskManager {
                     }
 
                     let idx = idx.unwrap();
-                    let (_, shared_state, task) = &mut guard[idx];
+                    let (id, shared_state, task) = &mut guard[idx];
+                    let id = *id;
 
                     shared_state.claim();
                     let mut task = task.take().unwrap();
@@ -96,7 +97,12 @@ impl TaskManager {
                     }
 
                     let mut guard = map.lock().unwrap();
-                    guard.remove(idx);
+                    for i in 0..guard.len() {
+                        if guard[i].0 == id {
+                            guard.remove(i);
+                            break;
+                        }
+                    }
                     semaphore.release();
                 }
             });
@@ -110,12 +116,11 @@ impl TaskManager {
         let timer = self.timer.clone();
         let on_finish = self.on_finish.clone();
         let semaphore = self.semaphore.clone();
+        let threads = self.threads;
 
-        self.timer.start(TimerMode::Repeated, Duration::from_millis(80), move || {
+        self.timer.start(TimerMode::Repeated, Duration::from_millis(300), move || {
             if groups_ui.row_count() == 0 {
-                if let Some(f) = &mut *on_finish.borrow_mut() {
-                    f();
-                }
+                if let Some(f) = &mut *on_finish.borrow_mut() { f(); }
 
                 on_finish.replace(None);
                 semaphore.release_all();
@@ -124,48 +129,37 @@ impl TaskManager {
             }
 
             let tasks_map = tasks.lock().unwrap();
-            let mut removals: Vec<i32> = vec![];
 
-            for i in 0..groups_ui.row_count() {
+            for i in 0..min(threads as usize, groups_ui.row_count()) {
                 let group = groups_ui.row_data(i).unwrap();
-                for j in 0..group.tasks.row_count() {
+                let mut j = 0;
+                while j < min(threads as usize, group.tasks.row_count()) {
                     let mut task = group.tasks.row_data(j).unwrap();
                     let handle = tasks_map.iter().find(|i| i.0 == task.id);
 
                     if handle.is_none() {
-                        removals.push(task.id);
-                        break;
+                        group.get_model().remove(j);
+                        continue;
                     }
                     let (_, handle, _) = handle.unwrap();
                     task.state = handle.state.load(Ordering::Relaxed).into();
                     task.progress = handle.get_progress();
 
                     group.get_model().set_row_data(j, task);
+                    j += 1;
                 }
             }
 
             drop(tasks_map);
-            if !removals.is_empty() {
-                let mut i: usize = 0;
-                while i < groups_ui.row_count() {
-                    let group = groups_ui.row_data(i).unwrap();
-                    let mut j = 0;
-                    while j < group.tasks.row_count() {
-                        let task = group.tasks.row_data(j).unwrap();
+            let mut i: usize = 0;
+            while i < min(threads as usize, groups_ui.row_count()) {
+                let group = groups_ui.row_data(i).unwrap();
 
-                        if removals.iter().find(|id| **id == task.id).is_some() {
-                            group.get_model().remove(j);
-                            continue;
-                        }
-                        j += 1;
-                    }
-
-                    if group.get_model().row_count() == 0 {
-                        groups_ui.remove(i);
-                        continue;
-                    }
-                    i += 1;
+                if group.get_model().row_count() == 0 {
+                    groups_ui.remove(i);
+                    continue;
                 }
+                i += 1;
             }
         });
 

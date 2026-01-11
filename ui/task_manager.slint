@@ -35,21 +35,28 @@ component TaskItem inherits HorizontalLayout {
 	alignment: space-between;
 	area := TouchArea {}
 	Text { text: task.name; }
-	Tooltip {
+	/*Tooltip {
 		opacity: area.has-hover ? 1.0 : 0.0;
 		text: task.details;
-	}
+	}*/
 	ProgressBar {
 		width: 150px;
 		height: 35px;
 		color: task.state == TaskState.finished ? #056800 : task.state == TaskState.failed ? #680000 : #006856;
 		progress: task.progress;
+		content: task.state == TaskState.in-progress ? "In Progress" :
+					task.state == TaskState.verifying ? "Verifying" :
+					task.state == TaskState.unpacking ? "Unpacking" :
+					task.state == TaskState.starting ? "Starting" :
+					task.state == TaskState.waiting ? "Waiting" :
+					task.state == TaskState.finished ? "Finished" : "Failed";
 	}
 }
 
 component Group inherits VerticalLayout {
 	in-out property <TasksGroup> group;
 
+	width: 100%;
 	padding-left: 6px;
 	spacing: 6px;
 	Text {
@@ -63,7 +70,7 @@ component Group inherits VerticalLayout {
 export component TaskManager inherits Rectangle {
 	in-out property <[TasksGroup]> groups: [];
 	in-out property <float> total_progress: 0.0;
-	background: #313131;
+	background: #252525;
 	border-radius: 24px;
 
 	VerticalLayout {
@@ -79,8 +86,13 @@ export component TaskManager inherits Rectangle {
 			ProgressBar { progress: total_progress; }
 		}
 		ListView {
-			height: parent.height * 0.8;
+			enabled: true;
+			mouse-drag-pan-enabled: true;
+			viewport-width: parent.width;
+			viewport-height: parent.height * 0.8;
 			width: parent.width;
+			height: parent.height * 0.8;
+			
 			for group in groups: Group {
 				group: group;
 			}
